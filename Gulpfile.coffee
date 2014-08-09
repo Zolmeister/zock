@@ -13,6 +13,7 @@ gulp.task 'build', ['lint'], ->
     entries: './zock.coffee'
     extensions: ['.coffee']
     debug: true
+    standalone: 'Zock'
   .bundle()
   .pipe source 'zock.js'
-  .pipe gulp.dest 'dist/'
+  .pipe gulp.dest '.'

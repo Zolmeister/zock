@@ -7,7 +7,7 @@ routers =
   get: Router()
 
 class Zock
-  constructor: (@baseUrl) ->
+  base: (@baseUrl) ->
     return this
 
   get: (@route) ->
@@ -19,24 +19,39 @@ class Zock
 
     @currentRouter.addRoute url, ->
       return {
-        status: status
-        body: body
+        statusCode: status
+        body: JSON.stringify(body)
       }
 
     return this
 
-  open: (method, url) ->
-    res = routers[method.toLowerCase()].match url
+  open: (method, url) =>
+    @response = routers[method.toLowerCase()].match url
 
-  send: () ->
-    request = new FakeXMLHttpRequest()
-    request.respond()
+  send: =>
+    res = @response.fn()
+    status = res.statusCode || 200
+    headers = res.headers || {'Content-Type': 'application/json'}
+    body = res.body
+
+    respond = => @request.respond(status, headers, body)
+
+    setTimeout respond, 0
 
   XMLHttpRequest: =>
-    return this
+    @request = new FakeXMLHttpRequest()
 
+    oldOpen = @request.open
+    oldSend = @request.send
 
-if typeof window != 'undefined'
-  window.Zock = Zock
+    @request.open = =>
+      @open.apply this, arguments
+      oldOpen.apply @request, arguments
+
+    @request.send = =>
+      @send.apply this, arguments
+      oldSend.apply @request, arguments
+
+    return @request
 
 module.exports = Zock

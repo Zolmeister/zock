@@ -1,6 +1,6 @@
 {
   "name": "zock",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/claydotio/zock",
   "dependencies": {
     "fake-xml-http-request": "https://github.com/trek/FakeXMLHttpRequest.git#d9f69e6793e87d73174eb775dc399733f199f55f"
@@ -9,7 +9,7 @@
     "Zolmeister <zolikahan@gmail.com>"
   ],
   "description": "nock for the client",
-  "main": "dist/zock.js",
+  "main": "zock.js",
   "keywords": [
     "nock"
   ],
