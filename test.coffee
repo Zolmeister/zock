@@ -5,10 +5,10 @@ Zock = new require('./zock.coffee')
 
 describe 'zock', ->
   it 'should get', (done) ->
-    xmlhttp = new (new Zock()
+    xmlhttp = new Zock()
       .base('http://baseurl.com')
       .get('/test')
-      .reply(200, {hello: 'world'}).XMLHttpRequest)()
+      .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
       if xmlhttp.readyState == 4
