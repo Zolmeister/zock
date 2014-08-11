@@ -3,8 +3,6 @@ FakeXMLHttpRequest =
 
 Router = require('routes')
 
-
-
 class Zock
   routers =
     get: Router()
@@ -27,14 +25,24 @@ class Zock
 
     return this
 
-  XMLHttpRequest: ->
+  backup: (@XMLHttpRequest) ->
+    return
+
+  XMLHttpRequest: =>
+    backup = @backup
     request = new FakeXMLHttpRequest()
     response = null
 
     oldOpen = request.open
     oldSend = request.send
 
+    url = null
+    method = null
+
     send = ->
+      if not response
+        throw new Error("No route for #{method} #{url}")
+
       res = response.fn()
       status = res.statusCode || 200
       headers = res.headers || {'Content-Type': 'application/json'}
@@ -44,7 +52,9 @@ class Zock
 
       setTimeout respond, 0
 
-    open = (method, url) ->
+    open = (_method, _url) ->
+      url = _url
+      method = _method
       response = routers[method.toLowerCase()].match url
 
     request.open = ->
