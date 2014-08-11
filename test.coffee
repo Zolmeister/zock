@@ -77,7 +77,7 @@ describe 'zock', ->
 
     xmlhttp.onreadystatechange = ->
       if xmlhttp.readyState == 4
-        log.should.be 'get http://baseurl.com/test'
+        log.should.be 'get http://baseurl.com/test?test=123#hash'
         done()
 
     xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')

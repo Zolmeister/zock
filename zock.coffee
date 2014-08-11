@@ -58,13 +58,13 @@ class Zock
       url = _url
       method = _method
 
+      log "#{method} #{url}"
+
       parsed = URL.parse url
       delete parsed.query
       delete parsed.hash
       delete parsed.search
       delete parsed.path
-
-      log "#{method} #{URL.format(parsed)}"
 
       response = routers[method.toLowerCase()].match URL.format(parsed)
 
