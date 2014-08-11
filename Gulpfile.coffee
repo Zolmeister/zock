@@ -2,6 +2,7 @@ gulp = require 'gulp'
 browserify = require 'browserify'
 source = require 'vinyl-source-stream'
 coffeelint = require 'gulp-coffeelint'
+derequire = require 'gulp-derequire'
 
 gulp.task 'lint', ->
   gulp.src './zock.coffee'
@@ -16,4 +17,7 @@ gulp.task 'build', ['lint'], ->
     standalone: 'Zock'
   .bundle()
   .pipe source 'zock.js'
+  .pipe derequire
+    tokenTo:   '_dereq_',
+    tokenFrom: 'require'
   .pipe gulp.dest '.'

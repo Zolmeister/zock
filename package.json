@@ -1,11 +1,12 @@
 {
   "name": "zock",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "zock.js",
   "scripts": {
     "postinstall": "node_modules/bower/bin/bower install",
-    "test": "./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register test.coffee"
+    "test": "./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register test.coffee",
+    "build": "./node_modules/gulp/bin/gulp.js build"
   },
   "author": "",
   "devDependencies": {
@@ -16,6 +17,7 @@
     "coffeeify": "0.7.0",
     "gulp": "3.8.7",
     "gulp-coffeelint": "0.3.3",
+    "gulp-derequire": "0.3.1",
     "mocha": "1.21.4",
     "vinyl-source-stream": "0.1.1"
   },
