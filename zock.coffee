@@ -3,10 +3,12 @@ FakeXMLHttpRequest =
 
 Router = require('routes')
 
-routers =
-  get: Router()
+
 
 class Zock
+  routers =
+    get: Router()
+
   base: (@baseUrl) ->
     return this
 
@@ -25,33 +27,34 @@ class Zock
 
     return this
 
-  open: (method, url) =>
-    @response = routers[method.toLowerCase()].match url
+  XMLHttpRequest: ->
+    request = new FakeXMLHttpRequest()
+    response = null
 
-  send: =>
-    res = @response.fn()
-    status = res.statusCode || 200
-    headers = res.headers || {'Content-Type': 'application/json'}
-    body = res.body
+    oldOpen = request.open
+    oldSend = request.send
 
-    respond = => @request.respond(status, headers, body)
+    send = ->
+      res = response.fn()
+      status = res.statusCode || 200
+      headers = res.headers || {'Content-Type': 'application/json'}
+      body = res.body
 
-    setTimeout respond, 0
+      respond = -> request.respond(status, headers, body)
 
-  XMLHttpRequest: =>
-    @request = new FakeXMLHttpRequest()
+      setTimeout respond, 0
 
-    oldOpen = @request.open
-    oldSend = @request.send
+    open = (method, url) ->
+      response = routers[method.toLowerCase()].match url
 
-    @request.open = =>
-      @open.apply this, arguments
-      oldOpen.apply @request, arguments
+    request.open = ->
+      open.apply null, arguments
+      oldOpen.apply request, arguments
 
-    @request.send = =>
-      @send.apply this, arguments
-      oldSend.apply @request, arguments
+    request.send = ->
+      send()
+      oldSend.apply request, arguments
 
-    return @request
+    return request
 
 module.exports = Zock
