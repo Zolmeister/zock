@@ -16,7 +16,7 @@ class Zock
     return this
 
   reply: (status, body) ->
-    url = @baseUrl + @route
+    url = (@baseUrl or '') + @route
 
     @currentRouter.addRoute url, ->
       return {
