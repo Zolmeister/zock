@@ -1,7 +1,8 @@
 FakeXMLHttpRequest =
   require './components/fake-xml-http-request/fake_xml_http_request'
 
-Router = require('routes')
+Router = require 'routes'
+URL = require 'url'
 
 class Zock
   routers =
@@ -25,11 +26,12 @@ class Zock
 
     return this
 
-  backup: (@XMLHttpRequest) ->
-    return
+  logger: (logger) ->
+    @logger = logger
+    return this
 
   XMLHttpRequest: =>
-    backup = @backup
+    log = @logger or -> null
     request = new FakeXMLHttpRequest()
     response = null
 
@@ -55,7 +57,16 @@ class Zock
     open = (_method, _url) ->
       url = _url
       method = _method
-      response = routers[method.toLowerCase()].match url
+
+      parsed = URL.parse url
+      delete parsed.query
+      delete parsed.hash
+      delete parsed.search
+      delete parsed.path
+
+      log "#{method} #{URL.format(parsed)}"
+
+      response = routers[method.toLowerCase()].match URL.format(parsed)
 
     request.open = ->
       open.apply null, arguments
