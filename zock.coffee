@@ -16,12 +16,18 @@ class Zock
     return this
 
   reply: (status, body) ->
+    unless body
+      body = status
+      status = 200
+
     url = (@baseUrl or '') + @route
 
-    @currentRouter.addRoute url, ->
+    @currentRouter.addRoute url, (request) ->
+      res = if typeof body == 'function' then body(request) else body
+
       return {
         statusCode: status
-        body: JSON.stringify(body)
+        body: JSON.stringify(res)
       }
 
     return this
@@ -41,11 +47,23 @@ class Zock
     url = null
     method = null
 
+    extractQuery = (url) ->
+      parsed = URL.parse url
+      obj = {}
+      if parsed.query
+        for pair in parsed.query.split '&'
+          [key, value] = pair.split '='
+          obj[key] = value
+
+      return obj
+
     send = ->
       if not response
         throw new Error("No route for #{method} #{url}")
 
-      res = response.fn()
+      queryParams = extractQuery(request.url)
+
+      res = response.fn({params: response.params, query: queryParams})
       status = res.statusCode || 200
       headers = res.headers || {'Content-Type': 'application/json'}
       body = res.body
