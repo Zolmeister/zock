@@ -1,6 +1,6 @@
 {
   "name": "zock",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "homepage": "https://github.com/claydotio/zock",
   "devDependencies": {
     "fake-xml-http-request": "https://github.com/trek/FakeXMLHttpRequest.git#d9f69e6793e87d73174eb775dc399733f199f55f"
@@ -11,7 +11,8 @@
   "description": "nock for the client",
   "main": "zock.js",
   "keywords": [
-    "nock"
+    "http",
+    "mock"
   ],
   "license": "MIT",
   "ignore": [
