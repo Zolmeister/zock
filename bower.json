@@ -1,8 +1,8 @@
 {
   "name": "zock",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/claydotio/zock",
-  "dependencies": {
+  "devDependencies": {
     "fake-xml-http-request": "https://github.com/trek/FakeXMLHttpRequest.git#d9f69e6793e87d73174eb775dc399733f199f55f"
   },
   "authors": [
