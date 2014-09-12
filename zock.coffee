@@ -84,7 +84,7 @@ class Zock
       delete parsed.search
       delete parsed.path
 
-      response = routers[method.toLowerCase()].match URL.format(parsed)
+      response = routers[method.toLowerCase()]?.match URL.format(parsed)
 
     request.open = ->
       open.apply null, arguments
