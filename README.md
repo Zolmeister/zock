@@ -20,6 +20,8 @@ window.XMLHttpRequest = new Zock()
   .reply(200, {hello: 'world'})
   .get('/anotherRoute')
   .reply(200, {hello: 'world'})
+  .post('postroute')
+  .reply(200, {hello: 'post'})
   .get('/test/:name')
   .reply(function(req) {
     // req.params = path params
@@ -37,6 +39,10 @@ Set the base url that the following routes will be based from
 ### get({String} route)
 
 Begin defining a mocked GET request
+
+### post({String} route)
+
+Begin defining a mocked POST request
 
 ### reply({String} [status]=200, {Object|Function} response)
 

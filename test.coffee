@@ -19,6 +19,21 @@ describe 'zock', ->
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
 
+  it 'should post', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .post('/test')
+      .reply(200, {hello: 'post'}).XMLHttpRequest()
+
+    xmlhttp.onreadystatechange = ->
+      if xmlhttp.readyState == 4
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'post'})
+        done()
+
+    xmlhttp.open('post', 'http://baseurl.com/test')
+    xmlhttp.send()
+
   it 'should get multiple at the same time', (done) ->
     XML = new Zock()
       .base('http://baseurl.com')

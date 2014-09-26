@@ -7,12 +7,17 @@ URL = require 'url'
 class Zock
   routers =
     get: Router()
+    post: Router()
 
   base: (@baseUrl) ->
     return this
 
   get: (@route) ->
     @currentRouter = routers.get
+    return this
+
+  post: (@route) ->
+    @currentRouter = routers.post
     return this
 
   reply: (status, body) ->
