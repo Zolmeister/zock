@@ -19,6 +19,56 @@ describe 'zock', ->
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
 
+  it 'should get with pathed base', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com/api')
+      .get('/test')
+      .reply(200, {hello: 'world'}).XMLHttpRequest()
+
+    xmlhttp.onreadystatechange = ->
+      if xmlhttp.readyState == 4
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+        done()
+
+    xmlhttp.open('get', 'http://baseurl.com/api/test')
+    xmlhttp.send()
+
+  it 'supports multiple bases', (done) ->
+    mock = new Zock()
+      .base('http://baseurl.com/api')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+      .base('http://somedomain.com')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+
+    xmlhttpGen = ->
+      mock.XMLHttpRequest()
+
+    xmlhttp = xmlhttpGen()
+
+    xmlhttp.onreadystatechange = ->
+      if xmlhttp.readyState == 4
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+
+        xmlhttp = xmlhttpGen()
+
+        xmlhttp.onreadystatechange = ->
+          if xmlhttp.readyState == 4
+            res = xmlhttp.responseText
+            res.should.be JSON.stringify({hello: 'world'})
+            done()
+
+        xmlhttp.open('get', 'http://somedomain.com/test')
+        xmlhttp.send()
+
+    xmlhttp.open('get', 'http://baseurl.com/api/test')
+    xmlhttp.send()
+
+
+
   it 'should post', (done) ->
     xmlhttp = new Zock()
       .base('http://baseurl.com')
@@ -49,7 +99,8 @@ describe 'zock', ->
       if xmlhttp.readyState == 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
-        if ++resCnt == 2
+        resCnt += 1
+        if resCnt is 2
           done()
 
     xmlhttp2 = new XML()
@@ -57,7 +108,8 @@ describe 'zock', ->
       if xmlhttp2.readyState == 4
         res = xmlhttp2.responseText
         res.should.be JSON.stringify({test: 'test'})
-        if ++resCnt == 2
+        resCnt += 1
+        if resCnt is 2
           done()
 
 
