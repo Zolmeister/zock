@@ -62,13 +62,22 @@ class Zock
 
       return obj
 
-    send = ->
+    send = (data) ->
       if not response
         throw new Error("No route for #{method} #{url}")
 
+      try
+        bodyParams = JSON.parse data
+      catch err
+        bodyParams = {}
+
       queryParams = extractQuery(request.url)
 
-      res = response.fn({params: response.params, query: queryParams})
+      res = response.fn(
+        params: response.params
+        query: queryParams
+        body: bodyParams
+      )
       status = res.statusCode || 200
       headers = res.headers || {'Content-Type': 'application/json'}
       body = res.body
@@ -96,7 +105,7 @@ class Zock
       oldOpen.apply request, arguments
 
     request.send = ->
-      send()
+      send.apply null, arguments
       oldSend.apply request, arguments
 
     return request

@@ -26,6 +26,7 @@ window.XMLHttpRequest = new Zock()
   .reply(function(req) {
     // req.params = path params
     // req.query = query params
+    // req.body = post body (only supports JSON at the moment)
 
     return req
   })

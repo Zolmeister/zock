@@ -1,5 +1,4 @@
-chai = require 'clay-chai'
-chai.should()
+should = (require 'clay-chai').should()
 
 Zock = new require('./zock.coffee')
 
@@ -83,6 +82,18 @@ describe 'zock', ->
 
     xmlhttp.open('post', 'http://baseurl.com/test')
     xmlhttp.send()
+
+  it 'should post data', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .post('/test')
+      .reply(200, (res) ->
+        res.body.should.be {something: 'cool'}
+        done()
+      ).XMLHttpRequest()
+
+    xmlhttp.open('post', 'http://baseurl.com/test')
+    xmlhttp.send('{"something": "cool"}')
 
   it 'should get multiple at the same time', (done) ->
     XML = new Zock()
