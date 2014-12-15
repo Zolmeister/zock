@@ -28,7 +28,7 @@ class Zock
     url = (@baseUrl or '') + @route
 
     @currentRouter.addRoute url, (request) ->
-      res = if typeof body == 'function' then body(request) else body
+      res = if typeof body is 'function' then body(request) else body
 
       return {
         statusCode: status
@@ -78,8 +78,8 @@ class Zock
         query: queryParams
         body: bodyParams
       )
-      status = res.statusCode || 200
-      headers = res.headers || {'Content-Type': 'application/json'}
+      status = res.statusCode or 200
+      headers = res.headers or {'Content-Type': 'application/json'}
       body = res.body
 
       respond = -> request.respond(status, headers, body)
