@@ -1,13 +1,12 @@
 {
   "name": "zock",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "",
   "main": "zock.js",
   "scripts": {
     "bower": "./node_modules/bower/bin/bower install",
     "test": "./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register test.coffee",
-    "build": "./node_modules/gulp/bin/gulp.js build",
-    "prepublish": "npm run build"
+    "build": "./node_modules/gulp/bin/gulp.js build"
   },
   "author": "",
   "devDependencies": {
