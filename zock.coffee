@@ -8,6 +8,7 @@ class Zock
   routers =
     get: Router()
     post: Router()
+    put: Router()
 
   base: (@baseUrl) ->
     return this
@@ -18,6 +19,10 @@ class Zock
 
   post: (@route) ->
     @currentRouter = routers.post
+    return this
+
+  put: (@route) ->
+    @currentRouter = routers.put
     return this
 
   reply: (status, body) ->
