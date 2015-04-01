@@ -10,7 +10,7 @@ describe 'zock', ->
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
         done()
@@ -25,7 +25,7 @@ describe 'zock', ->
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
         done()
@@ -48,14 +48,14 @@ describe 'zock', ->
     xmlhttp = xmlhttpGen()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
 
         xmlhttp = xmlhttpGen()
 
         xmlhttp.onreadystatechange = ->
-          if xmlhttp.readyState == 4
+          if xmlhttp.readyState is 4
             res = xmlhttp.responseText
             res.should.be JSON.stringify({hello: 'world'})
             done()
@@ -66,7 +66,32 @@ describe 'zock', ->
     xmlhttp.open('get', 'http://baseurl.com/api/test')
     xmlhttp.send()
 
+  it 'should put', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .put('/test')
+      .reply(200, {hello: 'put'}).XMLHttpRequest()
 
+    xmlhttp.onreadystatechange = ->
+      if xmlhttp.readyState is 4
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'put'})
+        done()
+
+    xmlhttp.open('put', 'http://baseurl.com/test')
+    xmlhttp.send()
+
+  it 'should put data', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .put('/test')
+      .reply(200, (res) ->
+        res.body.should.be {something: 'cool'}
+        done()
+      ).XMLHttpRequest()
+
+    xmlhttp.open('put', 'http://baseurl.com/test')
+    xmlhttp.send('{"something": "cool"}')
 
   it 'should post', (done) ->
     xmlhttp = new Zock()
@@ -75,7 +100,7 @@ describe 'zock', ->
       .reply(200, {hello: 'post'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'post'})
         done()
@@ -107,7 +132,7 @@ describe 'zock', ->
     resCnt = 0
     xmlhttp = new XML()
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
         resCnt += 1
@@ -116,7 +141,7 @@ describe 'zock', ->
 
     xmlhttp2 = new XML()
     xmlhttp2.onreadystatechange = ->
-      if xmlhttp2.readyState == 4
+      if xmlhttp2.readyState is 4
         res = xmlhttp2.responseText
         res.should.be JSON.stringify({test: 'test'})
         resCnt += 1
@@ -136,7 +161,7 @@ describe 'zock', ->
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
         done()
@@ -154,7 +179,7 @@ describe 'zock', ->
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         log.should.be 'get http://baseurl.com/test?test=123#hash'
         done()
 
@@ -168,7 +193,7 @@ describe 'zock', ->
       .reply({hello: 'world'}).XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         res.should.be JSON.stringify({hello: 'world'})
         done()
@@ -185,7 +210,7 @@ describe 'zock', ->
       .XMLHttpRequest()
 
     xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
+      if xmlhttp.readyState is 4
         res = xmlhttp.responseText
         parsed = JSON.parse(res)
         parsed.params.name.should.be 'joe'
