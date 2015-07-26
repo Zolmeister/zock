@@ -6,6 +6,7 @@ URL = require 'url'
 routers =
   get: Router()
   post: Router()
+  put: Router()
 
 class Zock
   base: (@baseUrl) =>
@@ -17,6 +18,10 @@ class Zock
 
   post: (@route) =>
     @currentRouter = routers.post
+    return this
+
+  put: (@route) =>
+    @currentRouter = routers.put
     return this
 
   reply: (status, body) =>

@@ -67,8 +67,6 @@ describe 'zock', ->
     xmlhttp.open('get', 'http://baseurl.com/api/test')
     xmlhttp.send()
 
-
-
   it 'should post', (done) ->
     xmlhttp = new Zock()
       .base('http://baseurl.com')
@@ -95,6 +93,33 @@ describe 'zock', ->
     xmlhttp.open('post', 'http://baseurl.com/test')
     xmlhttp.send('{"something": "cool"}')
 
+  it 'should put', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .put('/test')
+      .reply(200, {hello: 'put'}).XMLHttpRequest()
+
+    xmlhttp.onreadystatechange = ->
+      if xmlhttp.readyState is 4
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'put'})
+        done()
+
+    xmlhttp.open('put', 'http://baseurl.com/test')
+    xmlhttp.send()
+
+  it 'should put data', (done) ->
+    xmlhttp = new Zock()
+      .base('http://baseurl.com')
+      .put('/test')
+      .reply(200, (res) ->
+        res.body.should.be {something: 'cool'}
+        done()
+      ).XMLHttpRequest()
+
+    xmlhttp.open('put', 'http://baseurl.com/test')
+    xmlhttp.send('{"something": "cool"}')
+
   it 'should get multiple at the same time', (done) ->
     XML = new Zock()
       .base('http://baseurl.com')
@@ -102,7 +127,6 @@ describe 'zock', ->
       .reply(200, {hello: 'world'})
       .get('/hello')
       .reply(200, {test: 'test'}).XMLHttpRequest
-
 
     resCnt = 0
     xmlhttp = new XML()
