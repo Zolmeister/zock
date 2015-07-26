@@ -1,6 +1,11 @@
 should = (require 'clay-chai').should()
 Zock = require '../src'
 
+onComplete = (xmlhttp, fn) ->
+  xmlhttp.onreadystatechange = ->
+    if xmlhttp.readyState is 4
+      fn()
+
 describe 'zock', ->
   it 'should get', (done) ->
     xmlhttp = new Zock()
@@ -8,11 +13,10 @@ describe 'zock', ->
       .get('/test')
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
-        done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
@@ -23,11 +27,10 @@ describe 'zock', ->
       .get('/test')
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
-        done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/api/test')
     xmlhttp.send()
@@ -46,21 +49,20 @@ describe 'zock', ->
 
     xmlhttp = xmlhttpGen()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
 
-        xmlhttp = xmlhttpGen()
+      xmlhttp = xmlhttpGen()
 
-        xmlhttp.onreadystatechange = ->
-          if xmlhttp.readyState == 4
-            res = xmlhttp.responseText
-            res.should.be JSON.stringify({hello: 'world'})
-            done()
+      xmlhttp.onreadystatechange = ->
+        if xmlhttp.readyState is 4
+          res = xmlhttp.responseText
+          res.should.be JSON.stringify({hello: 'world'})
+          done()
 
-        xmlhttp.open('get', 'http://somedomain.com/test')
-        xmlhttp.send()
+      xmlhttp.open('get', 'http://somedomain.com/test')
+      xmlhttp.send()
 
     xmlhttp.open('get', 'http://baseurl.com/api/test')
     xmlhttp.send()
@@ -73,11 +75,10 @@ describe 'zock', ->
       .post('/test')
       .reply(200, {hello: 'post'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'post'})
-        done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'post'})
+      done()
 
     xmlhttp.open('post', 'http://baseurl.com/test')
     xmlhttp.send()
@@ -105,17 +106,16 @@ describe 'zock', ->
 
     resCnt = 0
     xmlhttp = new XML()
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
-        resCnt += 1
-        if resCnt is 2
-          done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
+      resCnt += 1
+      if resCnt is 2
+        done()
 
     xmlhttp2 = new XML()
     xmlhttp2.onreadystatechange = ->
-      if xmlhttp2.readyState == 4
+      if xmlhttp2.readyState is 4
         res = xmlhttp2.responseText
         res.should.be JSON.stringify({test: 'test'})
         resCnt += 1
@@ -134,11 +134,10 @@ describe 'zock', ->
       .get('/test')
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
-        done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
     xmlhttp.send()
@@ -152,10 +151,9 @@ describe 'zock', ->
       .get('/test')
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        log.should.be 'get http://baseurl.com/test?test=123#hash'
-        done()
+    onComplete xmlhttp, ->
+      log.should.be 'get http://baseurl.com/test?test=123#hash'
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
     xmlhttp.send()
@@ -166,11 +164,10 @@ describe 'zock', ->
       .get('/test')
       .reply({hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
-        done()
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      res.should.be JSON.stringify({hello: 'world'})
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
@@ -183,15 +180,14 @@ describe 'zock', ->
         return res
       .XMLHttpRequest()
 
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState == 4
-        res = xmlhttp.responseText
-        parsed = JSON.parse(res)
-        parsed.params.name.should.be 'joe'
-        parsed.query.q.should.be 't'
-        parsed.query.p.should.be 'plumber'
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      parsed = JSON.parse(res)
+      parsed.params.name.should.be 'joe'
+      parsed.query.q.should.be 't'
+      parsed.query.p.should.be 'plumber'
 
-        done()
+      done()
 
     xmlhttp.open('get', 'http://baseurl.com/test/joe?q=t&p=plumber')
     xmlhttp.send()

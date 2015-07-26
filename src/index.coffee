@@ -8,18 +8,18 @@ routers =
   post: Router()
 
 class Zock
-  base: (@baseUrl) ->
+  base: (@baseUrl) =>
     return this
 
-  get: (@route) ->
+  get: (@route) =>
     @currentRouter = routers.get
     return this
 
-  post: (@route) ->
+  post: (@route) =>
     @currentRouter = routers.post
     return this
 
-  reply: (status, body) ->
+  reply: (status, body) =>
     unless body
       body = status
       status = 200
@@ -36,12 +36,11 @@ class Zock
 
     return this
 
-  logger: (logger) ->
-    @logger = logger
+  logger: (@loggerFn) =>
     return this
 
   XMLHttpRequest: =>
-    log = @logger or -> null
+    log = @loggerFn or -> null
     request = new FakeXMLHttpRequest()
     response = null
 
