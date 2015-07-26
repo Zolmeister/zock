@@ -1,5 +1,4 @@
-FakeXMLHttpRequest =
-  require './components/fake-xml-http-request/fake_xml_http_request'
+FakeXMLHttpRequest = require 'fake-xml-http-request'
 
 Router = require 'routes'
 URL = require 'url'
