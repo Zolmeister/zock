@@ -1,53 +1,62 @@
+_ = require 'lodash'
+URL = require 'url'
+Router = require 'routes'
 FakeXMLHttpRequest = require 'fake-xml-http-request'
 
-Router = require 'routes'
-URL = require 'url'
-
-routers =
-  get: Router()
-  post: Router()
-  put: Router()
-
 class Zock
-  base: (@baseUrl) =>
-    return this
+  constructor: (@state = {}) -> null
 
-  get: (@route) =>
-    @currentRouter = routers.get
-    return this
+  bind: (transform) =>
+    new Zock(transform(@state))
 
-  post: (@route) =>
-    @currentRouter = routers.post
-    return this
+  toString: =>
+    JSON.stringify @state
 
-  put: (@route) =>
-    @currentRouter = routers.put
-    return this
+  base: (baseUrl) =>
+    @bind (state) ->
+      _.defaults {baseUrl}, state
+
+  request: (path, method) =>
+    @bind (state) ->
+      _.defaults {path, method}, state
+
+  get: (path) => @request(path, 'get')
+  post: (path) => @request(path, 'post')
+  put: (path) => @request(path, 'put')
 
   reply: (status, body) =>
-    unless body
+    unless _.isNumber status
       body = status
       status = 200
 
-    url = (@baseUrl or '') + @route
-
-    @currentRouter.addRoute url, (request) ->
-      res = if typeof body is 'function' then body(request) else body
-
-      return {
-        statusCode: status
-        body: JSON.stringify(res)
+    @bind (state) ->
+      results = (state.results or []).concat {
+        status
+        body
+        url: (state.baseUrl or '') + state.path
+        method: state.method
       }
 
-    return this
+      _.defaults {results}, state
 
-  logger: (@loggerFn) =>
-    return this
+  logger: (logFn) =>
+    @bind (state) ->
+      _.defaults {logFn}, state
 
   XMLHttpRequest: =>
-    log = @loggerFn or -> null
+    log = @state.logFn or -> null
     request = new FakeXMLHttpRequest()
     response = null
+    routers = _.reduce @state.results, (routers, result) ->
+      routers[result.method] ?= Router()
+      routers[result.method].addRoute result.url, (request) ->
+        # FIXME: this is wrong
+        if _.isFunction result.body
+          result.body = result.body request
+        result.body = JSON.stringify result.body
+        return result
+      return routers
+    , {}
 
     oldOpen = request.open
     oldSend = request.send
