@@ -52,7 +52,7 @@ gulp.task 'test:browser:phantom', ['build:test'], (cb) ->
 
 gulp.task 'test:node', ->
   gulp.src paths.rootTests
-    .pipe mocha()
+    .pipe mocha({timeout: 300})
 
 gulp.task 'test:coverage', ->
   gulp.src paths.cover
@@ -60,7 +60,7 @@ gulp.task 'test:coverage', ->
     .pipe istanbul.hookRequire()
     .on 'finish', ->
       gulp.src paths.rootTests
-        .pipe mocha()
+        .pipe mocha({timeout: 300})
         .pipe istanbul.writeReports({
           reporters: ['html', 'text', 'text-summary']
         })

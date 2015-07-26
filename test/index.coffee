@@ -1,5 +1,5 @@
 should = (require 'clay-chai').should()
-Zock = new require '../src'
+Zock = require '../src'
 
 describe 'zock', ->
   it 'should get', (done) ->

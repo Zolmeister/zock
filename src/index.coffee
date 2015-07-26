@@ -3,11 +3,11 @@ FakeXMLHttpRequest = require 'fake-xml-http-request'
 Router = require 'routes'
 URL = require 'url'
 
-class Zock
-  routers =
-    get: Router()
-    post: Router()
+routers =
+  get: Router()
+  post: Router()
 
+class Zock
   base: (@baseUrl) ->
     return this
 
