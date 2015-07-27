@@ -102,8 +102,6 @@ Supports promises
 
 ## Contributing
 
-The source file is `zock.coffee`
-
 ```sh
 $ npm -d install
 $ npm test
