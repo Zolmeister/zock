@@ -392,11 +392,10 @@ describe 'zock', ->
 
         xmlhttp = xmlhttpGen()
 
-        xmlhttp.onreadystatechange = ->
-          if xmlhttp.readyState is 4
-            res = xmlhttp.responseText
-            assert.equal res, JSON.stringify({hello: 'world'})
-            done()
+        onComplete xmlhttp, ->
+          res = xmlhttp.responseText
+          assert.equal res, JSON.stringify({hello: 'world'})
+          done()
 
         xmlhttp.open('get', 'http://somedomain.com/test')
         xmlhttp.send()
@@ -436,11 +435,10 @@ describe 'zock', ->
         .put('/test')
         .reply(200, {hello: 'put'}).XMLHttpRequest()
 
-      xmlhttp.onreadystatechange = ->
-        if xmlhttp.readyState is 4
-          res = xmlhttp.responseText
-          assert.equal res, JSON.stringify({hello: 'put'})
-          done()
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        assert.equal res, JSON.stringify({hello: 'put'})
+        done()
 
       xmlhttp.open('put', 'http://baseurl.com/test')
       xmlhttp.send()
