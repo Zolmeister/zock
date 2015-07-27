@@ -1,6 +1,6 @@
 {
   "name": "zock",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scaffolding for isomorphic coffeescript libraries",
   "keywords": [
     "isomorphic",
@@ -50,10 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Zorium/isomorphic-seed.git"
+    "url": "https://github.com/claydotio/zock.git"
   },
   "bugs": {
-    "url": "https://github.com/Zorium/isomorphic-seed/issues"
+    "url": "https://github.com/claydotio/zock/issues"
   },
-  "homepage": "https://github.com/Zorium/isomorphic-seed"
+  "homepage": "https://github.com/claydotio/zock"
 }
