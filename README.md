@@ -3,7 +3,7 @@
 Zock is an HTTP mocking library for **both** node.js and the browser  
 Similar to [Nock](https://github.com/pgte/nock) (but isomorphic)  
 
-Currently Zock is mostly incomplete, but accepting contributions
+Contributions weclome!
 
 ## Install
 
