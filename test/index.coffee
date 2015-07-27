@@ -1,5 +1,5 @@
-should = (require 'clay-chai').should()
 http = require 'http'
+assert = require 'assert'
 
 require './polyfill'
 zock = require '../src'
@@ -30,7 +30,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
           done()
         res.on 'error', done
 
@@ -51,7 +51,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
           done()
         res.on 'error', done
 
@@ -75,7 +75,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
 
           opts =
             host: 'somedomain.com'
@@ -86,7 +86,7 @@ describe 'zock', ->
             res.on 'data', (chunk) ->
               body += chunk
             res.on 'end', ->
-              body.should.be JSON.stringify {hello: 'world2'}
+              assert.equal body, JSON.stringify {hello: 'world2'}
               done()
             res.on 'error', done
 
@@ -113,9 +113,9 @@ describe 'zock', ->
           body += chunk
         res.on 'end', ->
           parsed = JSON.parse(body)
-          parsed.params.name.should.be 'joe'
-          parsed.query.q.should.be 't'
-          parsed.query.p.should.be 'plumber'
+          assert.equal parsed.params.name, 'joe'
+          assert.equal parsed.query.q, 't'
+          assert.equal parsed.query.p, 'plumber'
           done()
         res.on 'error', done
 
@@ -137,7 +137,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'post'}
+          assert.equal body, JSON.stringify {hello: 'post'}
           done()
         res.on 'error', done
 
@@ -148,7 +148,7 @@ describe 'zock', ->
         .base('http://baseurl.com')
         .post('/test')
         .reply(200, (res) ->
-          res.body.should.be {something: 'cool'}
+          assert.deepEqual res.body, {something: 'cool'}
           done()
         ).nodeRequest()
 
@@ -178,7 +178,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'put'}
+          assert.equal body, JSON.stringify {hello: 'put'}
           done()
         res.on 'error', done
 
@@ -189,7 +189,7 @@ describe 'zock', ->
         .base('http://baseurl.com')
         .put('/test')
         .reply(200, (res) ->
-          res.body.should.be {something: 'cool'}
+          assert.deepEqual res.body, {something: 'cool'}
           done()
         ).nodeRequest()
 
@@ -225,7 +225,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
           resCnt += 1
           if resCnt is 2
             done()
@@ -238,7 +238,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {test: 'test'}
+          assert.equal body, JSON.stringify {test: 'test'}
           resCnt += 1
           if resCnt is 2
             done()
@@ -261,7 +261,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
           done()
         res.on 'error', done
 
@@ -282,7 +282,7 @@ describe 'zock', ->
 
       req = request opts, (res) ->
         res.on 'end', ->
-          log.should.be 'get http://baseurl.com/test?test=123#hash'
+          assert.equal log, 'get http://baseurl.com/test?test=123#hash'
           done()
         res.on 'error', done
 
@@ -303,7 +303,7 @@ describe 'zock', ->
         res.on 'data', (chunk) ->
           body += chunk
         res.on 'end', ->
-          body.should.be JSON.stringify {hello: 'world'}
+          assert.equal body, JSON.stringify {hello: 'world'}
           done()
         res.on 'error', done
 
@@ -318,7 +318,7 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
         done()
 
       xmlhttp.open('get', 'http://baseurl.com/test')
@@ -332,7 +332,7 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
         done()
 
       xmlhttp.open('get', 'http://baseurl.com/api/test')
@@ -354,14 +354,14 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
 
         xmlhttp = xmlhttpGen()
 
         xmlhttp.onreadystatechange = ->
           if xmlhttp.readyState is 4
             res = xmlhttp.responseText
-            res.should.be JSON.stringify({hello: 'world'})
+            assert.equal res, JSON.stringify({hello: 'world'})
             done()
 
         xmlhttp.open('get', 'http://somedomain.com/test')
@@ -378,7 +378,7 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'post'})
+        assert.equal res, JSON.stringify({hello: 'post'})
         done()
 
       xmlhttp.open('post', 'http://baseurl.com/test')
@@ -389,7 +389,7 @@ describe 'zock', ->
         .base('http://baseurl.com')
         .post('/test')
         .reply(200, (res) ->
-          res.body.should.be {something: 'cool'}
+          assert.deepEqual res.body, {something: 'cool'}
           done()
         ).XMLHttpRequest()
 
@@ -405,7 +405,7 @@ describe 'zock', ->
       xmlhttp.onreadystatechange = ->
         if xmlhttp.readyState is 4
           res = xmlhttp.responseText
-          res.should.be JSON.stringify({hello: 'put'})
+          assert.equal res, JSON.stringify({hello: 'put'})
           done()
 
       xmlhttp.open('put', 'http://baseurl.com/test')
@@ -416,7 +416,7 @@ describe 'zock', ->
         .base('http://baseurl.com')
         .put('/test')
         .reply(200, (res) ->
-          res.body.should.be {something: 'cool'}
+          assert.deepEqual res.body, {something: 'cool'}
           done()
         ).XMLHttpRequest()
 
@@ -435,7 +435,7 @@ describe 'zock', ->
       xmlhttp = new XML()
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
         resCnt += 1
         if resCnt is 2
           done()
@@ -444,7 +444,7 @@ describe 'zock', ->
       xmlhttp2.onreadystatechange = ->
         if xmlhttp2.readyState is 4
           res = xmlhttp2.responseText
-          res.should.be JSON.stringify({test: 'test'})
+          assert.equal res, JSON.stringify({test: 'test'})
           resCnt += 1
           if resCnt is 2
             done()
@@ -463,7 +463,7 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
         done()
 
       xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
@@ -479,7 +479,7 @@ describe 'zock', ->
         .reply(200, {hello: 'world'}).XMLHttpRequest()
 
       onComplete xmlhttp, ->
-        log.should.be 'get http://baseurl.com/test?test=123#hash'
+        assert.equal log, 'get http://baseurl.com/test?test=123#hash'
         done()
 
       xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
@@ -493,7 +493,7 @@ describe 'zock', ->
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'world'})
+        assert.equal res, JSON.stringify({hello: 'world'})
         done()
 
       xmlhttp.open('get', 'http://baseurl.com/test')
@@ -510,9 +510,9 @@ describe 'zock', ->
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
         parsed = JSON.parse(res)
-        parsed.params.name.should.be 'joe'
-        parsed.query.q.should.be 't'
-        parsed.query.p.should.be 'plumber'
+        assert.equal parsed.params.name, 'joe'
+        assert.equal parsed.query.q, 't'
+        assert.equal parsed.query.p, 'plumber'
 
         done()
 
