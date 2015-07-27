@@ -1,5 +1,8 @@
 should = (require 'clay-chai').should()
-Zock = require '../src'
+http = require 'http'
+
+require './polyfill'
+zock = require '../src'
 
 onComplete = (xmlhttp, fn) ->
   xmlhttp.onreadystatechange = ->
@@ -7,211 +10,511 @@ onComplete = (xmlhttp, fn) ->
       fn()
 
 describe 'zock', ->
-  it 'should get', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .get('/test')
-      .reply(200, {hello: 'world'}).XMLHttpRequest()
+  describe 'node', ->
+    if window?
+      return
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
-      done()
+    it 'should get', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .nodeRequest()
 
-    xmlhttp.open('get', 'http://baseurl.com/test')
-    xmlhttp.send()
+      opts =
+        host: 'baseurl.com'
+        path: '/test'
 
-  it 'should get with pathed base', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com/api')
-      .get('/test')
-      .reply(200, {hello: 'world'}).XMLHttpRequest()
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+          done()
+        res.on 'error', done
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
-      done()
+      req.end()
 
-    xmlhttp.open('get', 'http://baseurl.com/api/test')
-    xmlhttp.send()
+    it 'should get with pathed base', (done) ->
+      request = zock
+        .base('http://baseurl.com/api')
+        .get('/test')
+        .reply(200, {hello: 'world'}).nodeRequest()
 
-  it 'supports multiple bases', (done) ->
-    mock = new Zock()
-      .base('http://baseurl.com/api')
-      .get('/test')
-      .reply(200, {hello: 'world'})
-      .base('http://somedomain.com')
-      .get('/test')
-      .reply(200, {hello: 'world'})
+      opts =
+        host: 'baseurl.com'
+        path: '/api/test'
 
-    xmlhttpGen = ->
-      mock.XMLHttpRequest()
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+          done()
+        res.on 'error', done
 
-    xmlhttp = xmlhttpGen()
+      req.end()
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
+    it 'supports multiple bases', (done) ->
+      request = zock
+        .base('http://baseurl.com/api')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .base('http://somedomain.com')
+        .get('/test')
+        .reply(200, {hello: 'world2'}).nodeRequest()
+
+      opts =
+        host: 'baseurl.com'
+        path: '/api/test'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+
+          opts =
+            host: 'somedomain.com'
+            path: '/test'
+
+          req = request opts, (res) ->
+            body = ''
+            res.on 'data', (chunk) ->
+              body += chunk
+            res.on 'end', ->
+              body.should.be JSON.stringify {hello: 'world2'}
+              done()
+            res.on 'error', done
+
+          req.end()
+        res.on 'error', done
+
+      req.end()
+
+    it 'supports functions for body', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .get('/test/:name')
+        .reply (res) ->
+          return res
+        .nodeRequest()
+
+      opts =
+        host: 'baseurl.com'
+        path: '/test/joe?q=t&p=plumber'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          parsed = JSON.parse(body)
+          parsed.params.name.should.be 'joe'
+          parsed.query.q.should.be 't'
+          parsed.query.p.should.be 'plumber'
+          done()
+        res.on 'error', done
+
+      req.end()
+
+    it 'should post', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .post('/test')
+        .reply(200, {hello: 'post'}).nodeRequest()
+
+      opts =
+        method: 'post'
+        host: 'baseurl.com'
+        path: '/test'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'post'}
+          done()
+        res.on 'error', done
+
+      req.end()
+
+    it 'should post data', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .post('/test')
+        .reply(200, (res) ->
+          res.body.should.be {something: 'cool'}
+          done()
+        ).nodeRequest()
+
+      opts =
+        method: 'post'
+        host: 'baseurl.com'
+        path: '/test'
+
+      req = request opts, (res) -> null
+
+      req.write '{"something": "cool"}'
+      req.end()
+
+    it 'should put', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .put('/test')
+        .reply(200, {hello: 'put'}).nodeRequest()
+
+      opts =
+        method: 'put'
+        host: 'baseurl.com'
+        path: '/test'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'put'}
+          done()
+        res.on 'error', done
+
+      req.end()
+
+    it 'should put data', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .put('/test')
+        .reply(200, (res) ->
+          res.body.should.be {something: 'cool'}
+          done()
+        ).nodeRequest()
+
+      opts =
+        method: 'put'
+        host: 'baseurl.com'
+        path: '/test'
+
+      req = request opts, (res) -> null
+
+      req.write '{"something": "cool"}'
+      req.end()
+
+    it 'should get multiple at the same time', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .get('/hello')
+        .reply(200, {test: 'test'}).nodeRequest()
+
+      resCnt = 0
+      opts1 =
+        host: 'baseurl.com'
+        path: '/test'
+
+      opts2 =
+        host: 'baseurl.com'
+        path: '/hello'
+
+      req1 = request opts1, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+          resCnt += 1
+          if resCnt is 2
+            done()
+        res.on 'error', done
+
+      req1.end()
+
+      req2 = request opts2, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {test: 'test'}
+          resCnt += 1
+          if resCnt is 2
+            done()
+        res.on 'error', done
+
+      req2.end()
+
+    it 'should ignore query params and hashes', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'}).nodeRequest()
+
+      opts =
+        host: 'baseurl.com'
+        path: '/test?test=123#hash'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+          done()
+        res.on 'error', done
+
+      req.end()
+
+    it 'logs', (done) ->
+      log = 'null'
+
+      request = zock
+        .logger (x) -> log = x
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'}).nodeRequest()
+
+      opts =
+        host: 'baseurl.com'
+        path: '/test?test=123#hash'
+
+      req = request opts, (res) ->
+        res.on 'end', ->
+          log.should.be 'get http://baseurl.com/test?test=123#hash'
+          done()
+        res.on 'error', done
+
+      req.end()
+
+    it 'has optional status', (done) ->
+      request = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply({hello: 'world'}).nodeRequest()
+
+      opts =
+        host: 'baseurl.com'
+        path: '/test'
+
+      req = request opts, (res) ->
+        body = ''
+        res.on 'data', (chunk) ->
+          body += chunk
+        res.on 'end', ->
+          body.should.be JSON.stringify {hello: 'world'}
+          done()
+        res.on 'error', done
+
+      req.end()
+
+  describe 'browser', ->
+    it 'should get', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'}).XMLHttpRequest()
+
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+        done()
+
+      xmlhttp.open('get', 'http://baseurl.com/test')
+      xmlhttp.send()
+
+    it 'should get with pathed base', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com/api')
+        .get('/test')
+        .reply(200, {hello: 'world'}).XMLHttpRequest()
+
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+        done()
+
+      xmlhttp.open('get', 'http://baseurl.com/api/test')
+      xmlhttp.send()
+
+    it 'supports multiple bases', (done) ->
+      mock = zock
+        .base('http://baseurl.com/api')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .base('http://somedomain.com')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+
+      xmlhttpGen = ->
+        mock.XMLHttpRequest()
 
       xmlhttp = xmlhttpGen()
+
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+
+        xmlhttp = xmlhttpGen()
+
+        xmlhttp.onreadystatechange = ->
+          if xmlhttp.readyState is 4
+            res = xmlhttp.responseText
+            res.should.be JSON.stringify({hello: 'world'})
+            done()
+
+        xmlhttp.open('get', 'http://somedomain.com/test')
+        xmlhttp.send()
+
+      xmlhttp.open('get', 'http://baseurl.com/api/test')
+      xmlhttp.send()
+
+    it 'should post', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .post('/test')
+        .reply(200, {hello: 'post'}).XMLHttpRequest()
+
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'post'})
+        done()
+
+      xmlhttp.open('post', 'http://baseurl.com/test')
+      xmlhttp.send()
+
+    it 'should post data', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .post('/test')
+        .reply(200, (res) ->
+          res.body.should.be {something: 'cool'}
+          done()
+        ).XMLHttpRequest()
+
+      xmlhttp.open('post', 'http://baseurl.com/test')
+      xmlhttp.send('{"something": "cool"}')
+
+    it 'should put', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .put('/test')
+        .reply(200, {hello: 'put'}).XMLHttpRequest()
 
       xmlhttp.onreadystatechange = ->
         if xmlhttp.readyState is 4
           res = xmlhttp.responseText
-          res.should.be JSON.stringify({hello: 'world'})
+          res.should.be JSON.stringify({hello: 'put'})
           done()
 
-      xmlhttp.open('get', 'http://somedomain.com/test')
+      xmlhttp.open('put', 'http://baseurl.com/test')
       xmlhttp.send()
 
-    xmlhttp.open('get', 'http://baseurl.com/api/test')
-    xmlhttp.send()
+    it 'should put data', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .put('/test')
+        .reply(200, (res) ->
+          res.body.should.be {something: 'cool'}
+          done()
+        ).XMLHttpRequest()
 
-  it 'should post', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .post('/test')
-      .reply(200, {hello: 'post'}).XMLHttpRequest()
+      xmlhttp.open('put', 'http://baseurl.com/test')
+      xmlhttp.send('{"something": "cool"}')
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'post'})
-      done()
+    it 'should get multiple at the same time', (done) ->
+      XML = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .get('/hello')
+        .reply(200, {test: 'test'}).XMLHttpRequest
 
-    xmlhttp.open('post', 'http://baseurl.com/test')
-    xmlhttp.send()
-
-  it 'should post data', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .post('/test')
-      .reply(200, (res) ->
-        res.body.should.be {something: 'cool'}
-        done()
-      ).XMLHttpRequest()
-
-    xmlhttp.open('post', 'http://baseurl.com/test')
-    xmlhttp.send('{"something": "cool"}')
-
-  it 'should put', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .put('/test')
-      .reply(200, {hello: 'put'}).XMLHttpRequest()
-
-    xmlhttp.onreadystatechange = ->
-      if xmlhttp.readyState is 4
+      resCnt = 0
+      xmlhttp = new XML()
+      onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        res.should.be JSON.stringify({hello: 'put'})
-        done()
-
-    xmlhttp.open('put', 'http://baseurl.com/test')
-    xmlhttp.send()
-
-  it 'should put data', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .put('/test')
-      .reply(200, (res) ->
-        res.body.should.be {something: 'cool'}
-        done()
-      ).XMLHttpRequest()
-
-    xmlhttp.open('put', 'http://baseurl.com/test')
-    xmlhttp.send('{"something": "cool"}')
-
-  it 'should get multiple at the same time', (done) ->
-    XML = new Zock()
-      .base('http://baseurl.com')
-      .get('/test')
-      .reply(200, {hello: 'world'})
-      .get('/hello')
-      .reply(200, {test: 'test'}).XMLHttpRequest
-
-    resCnt = 0
-    xmlhttp = new XML()
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
-      resCnt += 1
-      if resCnt is 2
-        done()
-
-    xmlhttp2 = new XML()
-    xmlhttp2.onreadystatechange = ->
-      if xmlhttp2.readyState is 4
-        res = xmlhttp2.responseText
-        res.should.be JSON.stringify({test: 'test'})
+        res.should.be JSON.stringify({hello: 'world'})
         resCnt += 1
         if resCnt is 2
           done()
 
+      xmlhttp2 = new XML()
+      xmlhttp2.onreadystatechange = ->
+        if xmlhttp2.readyState is 4
+          res = xmlhttp2.responseText
+          res.should.be JSON.stringify({test: 'test'})
+          resCnt += 1
+          if resCnt is 2
+            done()
 
-    xmlhttp.open('get', 'http://baseurl.com/test')
-    xmlhttp2.open('get', 'http://baseurl.com/hello')
-    xmlhttp.send()
-    xmlhttp2.send()
 
-  it 'should ignore query params and hashes', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .get('/test')
-      .reply(200, {hello: 'world'}).XMLHttpRequest()
+      xmlhttp.open('get', 'http://baseurl.com/test')
+      xmlhttp2.open('get', 'http://baseurl.com/hello')
+      xmlhttp.send()
+      xmlhttp2.send()
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
-      done()
+    it 'should ignore query params and hashes', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
-    xmlhttp.send()
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+        done()
 
-  it 'logs', (done) ->
-    log = 'null'
+      xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
+      xmlhttp.send()
 
-    xmlhttp = new Zock()
-      .logger (x) -> log = x
-      .base('http://baseurl.com')
-      .get('/test')
-      .reply(200, {hello: 'world'}).XMLHttpRequest()
+    it 'logs', (done) ->
+      log = 'null'
 
-    onComplete xmlhttp, ->
-      log.should.be 'get http://baseurl.com/test?test=123#hash'
-      done()
+      xmlhttp = zock
+        .logger (x) -> log = x
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
-    xmlhttp.send()
+      onComplete xmlhttp, ->
+        log.should.be 'get http://baseurl.com/test?test=123#hash'
+        done()
 
-  it 'has optional status', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .get('/test')
-      .reply({hello: 'world'}).XMLHttpRequest()
+      xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
+      xmlhttp.send()
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      res.should.be JSON.stringify({hello: 'world'})
-      done()
+    it 'has optional status', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply({hello: 'world'}).XMLHttpRequest()
 
-    xmlhttp.open('get', 'http://baseurl.com/test')
-    xmlhttp.send()
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        res.should.be JSON.stringify({hello: 'world'})
+        done()
 
-  it 'supports functions for body', (done) ->
-    xmlhttp = new Zock()
-      .base('http://baseurl.com')
-      .get('/test/:name')
-      .reply (res) ->
-        return res
-      .XMLHttpRequest()
+      xmlhttp.open('get', 'http://baseurl.com/test')
+      xmlhttp.send()
 
-    onComplete xmlhttp, ->
-      res = xmlhttp.responseText
-      parsed = JSON.parse(res)
-      parsed.params.name.should.be 'joe'
-      parsed.query.q.should.be 't'
-      parsed.query.p.should.be 'plumber'
+    it 'supports functions for body', (done) ->
+      xmlhttp = zock
+        .base('http://baseurl.com')
+        .get('/test/:name')
+        .reply (res) ->
+          return res
+        .XMLHttpRequest()
 
-      done()
+      onComplete xmlhttp, ->
+        res = xmlhttp.responseText
+        parsed = JSON.parse(res)
+        parsed.params.name.should.be 'joe'
+        parsed.query.q.should.be 't'
+        parsed.query.p.should.be 'plumber'
 
-    xmlhttp.open('get', 'http://baseurl.com/test/joe?q=t&p=plumber')
-    xmlhttp.send()
+        done()
+
+      xmlhttp.open('get', 'http://baseurl.com/test/joe?q=t&p=plumber')
+      xmlhttp.send()

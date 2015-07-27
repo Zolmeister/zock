@@ -22,6 +22,7 @@
     "coffee-script": "^1.9.3",
     "fake-xml-http-request": "^1.2.0",
     "lodash": "^3.10.0",
+    "qs": "^4.0.0",
     "routes": "^1.2.0",
     "url": "^0.10.3"
   },

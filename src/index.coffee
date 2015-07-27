@@ -1,7 +1,75 @@
 _ = require 'lodash'
+qs = require 'qs'
 URL = require 'url'
 Router = require 'routes'
 FakeXMLHttpRequest = require 'fake-xml-http-request'
+
+unless window?
+  # Avoid webpack include
+  httpReq = 'http'
+  http = require httpReq
+  eventsReq = 'events'
+  events = require eventsReq
+
+  class MockIncomingResponse extends events.EventEmitter
+    constructor: ({@method, @statusCode, @body}) ->
+      @httpVersion = '1.1'
+      @headers = {}
+      @rawHeaders = {}
+      @trailers = {}
+      @rawTrailers = {}
+      @method = 'get'
+      @url = ''
+      @statusCode = 200
+      @statusMessage = 'OK'
+      @socket = null
+    setTimeout: -> null
+    _send: =>
+      @emit 'data', @body
+      @emit 'end'
+
+  class MockClientRequest extends events.EventEmitter
+    constructor: ({@method, @url, @response, @cb}) -> null
+    flushHeaders: -> null
+    write: (@body) => null
+    end: =>
+      try
+        bodyParams = JSON.parse @body
+      catch err
+        bodyParams = {}
+
+      queryParams = qs.parse(URL.parse(@url).query)
+
+      res = @response.fn(
+        params: @response.params
+        query: queryParams
+        body: bodyParams
+      )
+
+      mockIncomingResponse = new MockIncomingResponse({
+        @method
+        statusCode: res.statusCode
+        body: res.body
+      })
+
+      @cb(mockIncomingResponse)
+      mockIncomingResponse._send()
+    abort: -> null
+    setTimeout: -> null
+    setNoDelay: -> null
+    setSocketKeepAlive: -> null
+
+resultsToRouters = (results) ->
+  _.reduce results, (routers, result) ->
+    routers[result.method] ?= Router()
+    routers[result.method].addRoute result.url, (request) ->
+      # FIXME: this is wrong
+      if _.isFunction result.body
+        result.body = result.body request
+      result.body = JSON.stringify result.body
+      return result
+    return routers
+  , {}
 
 class Zock
   constructor: (@state = {}) -> null
@@ -43,36 +111,43 @@ class Zock
     @bind (state) ->
       _.defaults {logFn}, state
 
+  nodeRequest: =>
+    log = @state.logFn or -> null
+    routers = resultsToRouters @state.results
+
+    (opts, cb) ->
+      method = opts.method or 'get'
+      hostname = opts.hostname or opts.host.split(':')[0]
+      base = if opts.port \
+        then "http://#{hostname}:#{opts.port}"
+        else "http://#{hostname}"
+      url = base + (opts.path or '/')
+
+      log "#{method} #{url}"
+
+      parsed = URL.parse url
+      delete parsed.query
+      delete parsed.hash
+      delete parsed.search
+      delete parsed.path
+
+
+      response = routers[method.toLowerCase()]?.match(URL.format(parsed))
+      unless response
+        throw new Error("No route for #{method} #{url}")
+      new MockClientRequest({method, response, url, cb})
+
   XMLHttpRequest: =>
     log = @state.logFn or -> null
     request = new FakeXMLHttpRequest()
     response = null
-    routers = _.reduce @state.results, (routers, result) ->
-      routers[result.method] ?= Router()
-      routers[result.method].addRoute result.url, (request) ->
-        # FIXME: this is wrong
-        if _.isFunction result.body
-          result.body = result.body request
-        result.body = JSON.stringify result.body
-        return result
-      return routers
-    , {}
+    routers = resultsToRouters @state.results
 
     oldOpen = request.open
     oldSend = request.send
 
     url = null
     method = null
-
-    extractQuery = (url) ->
-      parsed = URL.parse url
-      obj = {}
-      if parsed.query
-        for pair in parsed.query.split '&'
-          [key, value] = pair.split '='
-          obj[key] = value
-
-      return obj
 
     send = (data) ->
       if not response
@@ -83,7 +158,7 @@ class Zock
       catch err
         bodyParams = {}
 
-      queryParams = extractQuery(request.url)
+      queryParams = qs.parse(URL.parse(request.url).query)
 
       res = response.fn(
         params: response.params
@@ -122,4 +197,4 @@ class Zock
 
     return request
 
-module.exports = Zock
+module.exports = new Zock()
