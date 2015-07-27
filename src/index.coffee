@@ -12,21 +12,16 @@ unless window?
   events = require eventsReq
 
   class MockIncomingResponse extends events.EventEmitter
-    constructor: ({@method, @statusCode, @body}) ->
+    constructor: ({@method, @statusCode}) ->
       @httpVersion = '1.1'
       @headers = {}
       @rawHeaders = {}
       @trailers = {}
       @rawTrailers = {}
-      @method = 'get'
       @url = ''
-      @statusCode = 200
       @statusMessage = 'OK'
       @socket = null
     setTimeout: -> null
-    _send: =>
-      @emit 'data', @body
-      @emit 'end'
 
   class MockClientRequest extends events.EventEmitter
     constructor: ({@method, @url, @response, @cb}) -> null
@@ -49,11 +44,11 @@ unless window?
       mockIncomingResponse = new MockIncomingResponse({
         @method
         statusCode: res.statusCode
-        body: res.body
       })
 
       @cb(mockIncomingResponse)
-      mockIncomingResponse._send()
+      mockIncomingResponse.emit 'data', res.body
+      mockIncomingResponse.emit 'end'
     abort: -> null
     setTimeout: -> null
     setNoDelay: -> null
@@ -91,6 +86,27 @@ class Zock
   get: (path) => @request(path, 'get')
   post: (path) => @request(path, 'post')
   put: (path) => @request(path, 'put')
+  withOverride: (fn) =>
+    if window?
+      originalRequest = window.XMLHttpRequest
+      window.XMLHttpRequest = => new @XMLHttpRequest()
+    else
+      originalRequest = http.request
+      http.request = @nodeRequest()
+
+    restore = ->
+      if window?
+        window.XMLHttpRequest = originalRequest
+      else
+        http.request = originalRequest
+
+    Promise.resolve fn()
+    .then (res) ->
+      restore()
+      return res
+    .catch (err) ->
+      restore()
+      throw err
 
   reply: (status, body) =>
     unless _.isNumber status

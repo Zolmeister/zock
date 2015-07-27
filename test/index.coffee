@@ -1,8 +1,12 @@
-http = require 'http'
+require './polyfill'
+
 assert = require 'assert'
 
-require './polyfill'
 zock = require '../src'
+
+unless window?
+  httpReq = 'http'
+  http = require httpReq
 
 onComplete = (xmlhttp, fn) ->
   xmlhttp.onreadystatechange = ->
@@ -309,6 +313,36 @@ describe 'zock', ->
 
       req.end()
 
+    it 'withOverride', ->
+      zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply({hello: 'world'})
+        .withOverride ->
+          new Promise (resolve, reject) ->
+            opts =
+              host: 'baseurl.com'
+              path: '/test'
+
+            req = http.request opts, (res) ->
+              body = ''
+              res.on 'data', (chunk) ->
+                body += chunk
+              res.on 'end', ->
+                assert.equal body, JSON.stringify {hello: 'world'}
+                resolve()
+              res.on 'error', reject
+
+            req.end()
+
+    it 'removes override after completion', ->
+      original = http.request
+      zock
+      .withOverride ->
+        null
+      .then ->
+        assert.equal http.request, original
+
   describe 'browser', ->
     it 'should get', (done) ->
       xmlhttp = zock
@@ -518,3 +552,34 @@ describe 'zock', ->
 
       xmlhttp.open('get', 'http://baseurl.com/test/joe?q=t&p=plumber')
       xmlhttp.send()
+
+    it 'withOverride', ->
+      unless window?
+        return
+
+      zock
+        .base('http://baseurl.com')
+        .get('/test')
+        .reply(200, {hello: 'world'})
+        .withOverride ->
+          new Promise (resolve) ->
+            xmlhttp = new window.XMLHttpRequest()
+
+            onComplete xmlhttp, ->
+              res = xmlhttp.responseText
+              assert.equal res, JSON.stringify({hello: 'world'})
+              resolve()
+
+            xmlhttp.open('get', 'http://baseurl.com/test')
+            xmlhttp.send()
+
+    it 'removes override after completion', ->
+      unless window?
+        return
+
+      original = window.XMLHttpRequest
+      zock
+      .withOverride ->
+        null
+      .then ->
+        assert.equal window.XMLHttpRequest, original

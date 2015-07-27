@@ -18,3 +18,6 @@ if not Function::bind
     fNOP.prototype = @prototype
     fBound.prototype = new fNOP()
     fBound
+
+Promise = require 'promiz'
+window?.Promise ?= Promise
