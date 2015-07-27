@@ -285,6 +285,7 @@ describe 'zock', ->
         path: '/test?test=123#hash'
 
       req = request opts, (res) ->
+        res.on 'data', -> null
         res.on 'end', ->
           assert.equal log, 'get http://baseurl.com/test?test=123#hash'
           done()

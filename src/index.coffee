@@ -4,23 +4,30 @@ URL = require 'url'
 Router = require 'routes'
 FakeXMLHttpRequest = require 'fake-xml-http-request'
 
-unless window?
+if window?
+  originalXMLHttpRequest = window.XMLHttpRequest
+else
   # Avoid webpack include
   httpReq = 'http'
   http = require httpReq
+  originalHttpRequest = http.request
   eventsReq = 'events'
   events = require eventsReq
+  streamReq = 'stream'
+  stream = require streamReq
 
-  class MockIncomingResponse extends events.EventEmitter
+  class MockIncomingResponse extends stream.Readable
     constructor: ({@method, @statusCode}) ->
+      super()
       @httpVersion = '1.1'
       @headers = {}
       @rawHeaders = {}
       @trailers = {}
       @rawTrailers = {}
       @url = ''
-      @statusMessage = 'OK'
+      @statusMessage = 'STATUS MESSAGE'
       @socket = null
+    _read: -> undefined
     setTimeout: -> null
 
   class MockClientRequest extends events.EventEmitter
@@ -47,8 +54,9 @@ unless window?
       })
 
       @cb(mockIncomingResponse)
-      mockIncomingResponse.emit 'data', res.body
-      mockIncomingResponse.emit 'end'
+      @emit 'response', mockIncomingResponse
+      mockIncomingResponse.push res.body
+      mockIncomingResponse.push null
     abort: -> null
     setTimeout: -> null
     setNoDelay: -> null
@@ -100,7 +108,8 @@ class Zock
       else
         http.request = originalRequest
 
-    Promise.resolve fn()
+    new Promise (resolve) ->
+      resolve fn()
     .then (res) ->
       restore()
       return res
@@ -115,7 +124,7 @@ class Zock
 
     @bind (state) ->
       results = (state.results or []).concat {
-        status
+        statusCode: status
         body
         url: (state.baseUrl or '') + state.path
         method: state.method
@@ -131,7 +140,7 @@ class Zock
     log = @state.logFn or -> null
     routers = resultsToRouters @state.results
 
-    (opts, cb) ->
+    (opts, cb = -> null) ->
       method = opts.method or 'get'
       hostname = opts.hostname or opts.host.split(':')[0]
       base = if opts.port \
@@ -150,7 +159,7 @@ class Zock
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
       unless response
-        throw new Error("No route for #{method} #{url}")
+        return originalHttpRequest.apply http, arguments
       new MockClientRequest({method, response, url, cb})
 
   XMLHttpRequest: =>
