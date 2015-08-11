@@ -14,6 +14,7 @@ $ npm install zock
 ## Usage
 
 ```js
+require('coffee-script/register') // register coffee-script
 var request = require('clay-request')
 var zock = require('zock')
 
