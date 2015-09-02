@@ -66,11 +66,15 @@ resultsToRouters = (results) ->
   _.reduce results, (routers, result) ->
     routers[result.method] ?= Router()
     routers[result.method].addRoute result.url, (request) ->
-      # FIXME: this is wrong
-      if _.isFunction result.body
-        result.body = result.body request
-      result.body = JSON.stringify result.body
-      return result
+      # FIXME: this is wrong, it assumes a JSON object always
+      body = if _.isFunction result.body
+        result.body request
+      else
+        result.body
+
+      _.defaults {
+        body: JSON.stringify body
+      }, result
     return routers
   , {}
 
