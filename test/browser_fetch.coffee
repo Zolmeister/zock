@@ -1,6 +1,6 @@
 require './polyfill'
 
-assert = require 'assert'
+b = require 'b-assert'
 
 zock = require '../src'
 
@@ -18,7 +18,7 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'world'})
+      b text, JSON.stringify({hello: 'world'})
 
   it 'should get with pathed base', ->
     fetch = zock
@@ -30,7 +30,7 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'world'})
+      b text, JSON.stringify({hello: 'world'})
 
   it 'supports multiple bases', ->
     fetch = zock
@@ -45,13 +45,13 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'world'})
+      b text, JSON.stringify({hello: 'world'})
 
       fetch 'http://somedomain.com/test'
       .then (res) ->
         res.text()
       .then (text) ->
-        assert.equal text, JSON.stringify({hello: 'world'})
+        b text, JSON.stringify({hello: 'world'})
 
   it 'should post', ->
     fetch = zock
@@ -63,14 +63,14 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'post'})
+      b text, JSON.stringify({hello: 'post'})
 
   it 'should post data', (done) ->
     fetch = zock
       .base('http://baseurl.com')
       .post('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
         done()
       ).fetch()
 
@@ -89,14 +89,14 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'put'})
+      b text, JSON.stringify({hello: 'put'})
 
   it 'should put data', ->
     fetch = zock
       .base('http://baseurl.com')
       .put('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
       ).fetch()
 
     fetch 'http://baseurl.com/test', {
@@ -122,8 +122,8 @@ describe 'fetch', ->
         res2.text()
       ]
     .then ([text1, text2]) ->
-      assert.equal text1, JSON.stringify({hello: 'world'})
-      assert.equal text2, JSON.stringify({test: 'test'})
+      b text1, JSON.stringify({hello: 'world'})
+      b text2, JSON.stringify({test: 'test'})
 
   it 'should ignore query params and hashes', ->
     fetch = zock
@@ -135,7 +135,7 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'world'})
+      b text, JSON.stringify({hello: 'world'})
 
   it 'logs', ->
     log = 'null'
@@ -150,7 +150,7 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal log, 'get http://baseurl.com/test?test=123#hash'
+      b log, 'get http://baseurl.com/test?test=123#hash'
 
   it 'has optional status', ->
     fetch = zock
@@ -162,7 +162,7 @@ describe 'fetch', ->
     .then (res) ->
       res.text()
     .then (text) ->
-      assert.equal text, JSON.stringify({hello: 'world'})
+      b text, JSON.stringify({hello: 'world'})
 
   it 'supports functions for body', ->
     fetch = zock
@@ -181,11 +181,11 @@ describe 'fetch', ->
       res.text()
     .then (text) ->
       parsed = JSON.parse(text)
-      assert.equal parsed.params.name, 'joe'
-      assert.equal parsed.query.q, 't'
-      assert.equal parsed.query.p, 'plumber'
-      assert.equal parsed.headers.h1, 'head'
-      assert.equal parsed.body.x, 'y'
+      b parsed.params.name, 'joe'
+      b parsed.query.q, 't'
+      b parsed.query.p, 'plumber'
+      b parsed.headers.h1, 'head'
+      b parsed.body.x, 'y'
 
   it 'withOverrides', ->
     zock
@@ -197,12 +197,12 @@ describe 'fetch', ->
         .then (res) ->
           res.text()
         .then (text) ->
-          assert.equal text, JSON.stringify({hello: 'world'})
+          b text, JSON.stringify({hello: 'world'})
 
   it 'removes override after completion', ->
     originalFetch = window.fetch
     zock
     .withOverrides ->
-      assert window.fetch isnt originalFetch
+      b window.fetch isnt originalFetch
     .then ->
-      assert.equal window.fetch, originalFetch
+      b window.fetch is originalFetch

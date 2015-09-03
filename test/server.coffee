@@ -1,4 +1,4 @@
-assert = require 'assert'
+b = require 'b-assert'
 
 zock = require '../src'
 
@@ -26,7 +26,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
         done()
       res.on 'error', done
 
@@ -47,7 +47,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
         done()
       res.on 'error', done
 
@@ -71,7 +71,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
 
         opts =
           host: 'somedomain.com'
@@ -82,7 +82,7 @@ describe 'http', ->
           res.on 'data', (chunk) ->
             body += chunk
           res.on 'end', ->
-            assert.equal body, JSON.stringify {hello: 'world2'}
+            b body, JSON.stringify {hello: 'world2'}
             done()
           res.on 'error', done
 
@@ -117,14 +117,14 @@ describe 'http', ->
         body += chunk
       res.on 'end', ->
         parsed = JSON.parse(body)
-        assert.equal parsed.params.name, 'joe'
-        assert.equal parsed.query.q, 't'
-        assert.equal parsed.query.p, 'plumber'
-        assert.equal parsed.headers.h1, 'head'
-        assert.equal parsed.headers.reg, 'one'
-        assert.deepEqual parsed.headers.cookie, ['xxx']
-        assert.deepEqual parsed.headers['set-cookie'], ['yyy']
-        assert.equal parsed.body.x, 'y'
+        b parsed.params.name, 'joe'
+        b parsed.query.q, 't'
+        b parsed.query.p, 'plumber'
+        b parsed.headers.h1, 'head'
+        b parsed.headers.reg, 'one'
+        b parsed.headers.cookie, ['xxx']
+        b parsed.headers['set-cookie'], ['yyy']
+        b parsed.body.x, 'y'
         done()
       res.on 'error', done
 
@@ -146,7 +146,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'post'}
+        b body, JSON.stringify {hello: 'post'}
         done()
       res.on 'error', done
 
@@ -157,7 +157,7 @@ describe 'http', ->
       .base('http://baseurl.com')
       .post('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
         done()
       ).nodeRequest()
 
@@ -187,7 +187,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'put'}
+        b body, JSON.stringify {hello: 'put'}
         done()
       res.on 'error', done
 
@@ -198,7 +198,7 @@ describe 'http', ->
       .base('http://baseurl.com')
       .put('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
         done()
       ).nodeRequest()
 
@@ -234,7 +234,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
         resCnt += 1
         if resCnt is 2
           done()
@@ -247,7 +247,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {test: 'test'}
+        b body, JSON.stringify {test: 'test'}
         resCnt += 1
         if resCnt is 2
           done()
@@ -270,7 +270,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
         done()
       res.on 'error', done
 
@@ -292,7 +292,7 @@ describe 'http', ->
     req = request opts, (res) ->
       res.on 'data', -> null
       res.on 'end', ->
-        assert.equal log, 'get http://baseurl.com/test?test=123#hash'
+        b log, 'get http://baseurl.com/test?test=123#hash'
         done()
       res.on 'error', done
 
@@ -313,7 +313,7 @@ describe 'http', ->
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        assert.equal body, JSON.stringify {hello: 'world'}
+        b body, JSON.stringify {hello: 'world'}
         done()
       res.on 'error', done
 
@@ -335,7 +335,7 @@ describe 'http', ->
             res.on 'data', (chunk) ->
               body += chunk
             res.on 'end', ->
-              assert.equal body, JSON.stringify {hello: 'world'}
+              b body, JSON.stringify {hello: 'world'}
               resolve()
             res.on 'error', reject
 
@@ -347,4 +347,4 @@ describe 'http', ->
     .withOverrides ->
       null
     .then ->
-      assert.equal http.request, original
+      b http.request is original

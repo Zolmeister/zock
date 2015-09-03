@@ -1,6 +1,6 @@
 require './polyfill'
 
-assert = require 'assert'
+b = require 'b-assert'
 
 zock = require '../src'
 
@@ -21,7 +21,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
       done()
 
     xmlhttp.open('get', 'http://baseurl.com/test')
@@ -35,7 +35,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
       done()
 
     xmlhttp.open('get', 'http://baseurl.com/api/test')
@@ -57,13 +57,13 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
 
       xmlhttp = xmlhttpGen()
 
       onComplete xmlhttp, ->
         res = xmlhttp.responseText
-        assert.equal res, JSON.stringify({hello: 'world'})
+        b res, JSON.stringify({hello: 'world'})
         done()
 
       xmlhttp.open('get', 'http://somedomain.com/test')
@@ -80,7 +80,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'post'})
+      b res, JSON.stringify({hello: 'post'})
       done()
 
     xmlhttp.open('post', 'http://baseurl.com/test')
@@ -91,7 +91,7 @@ describe 'XMLHttpRequest', ->
       .base('http://baseurl.com')
       .post('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
         done()
       ).XMLHttpRequest()
 
@@ -106,7 +106,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'put'})
+      b res, JSON.stringify({hello: 'put'})
       done()
 
     xmlhttp.open('put', 'http://baseurl.com/test')
@@ -117,7 +117,7 @@ describe 'XMLHttpRequest', ->
       .base('http://baseurl.com')
       .put('/test')
       .reply(200, (res) ->
-        assert.deepEqual res.body, {something: 'cool'}
+        b res.body, {something: 'cool'}
         done()
       ).XMLHttpRequest()
 
@@ -136,7 +136,7 @@ describe 'XMLHttpRequest', ->
     xmlhttp = new XML()
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
       resCnt += 1
       if resCnt is 2
         done()
@@ -145,7 +145,7 @@ describe 'XMLHttpRequest', ->
     xmlhttp2.onreadystatechange = ->
       if xmlhttp2.readyState is 4
         res = xmlhttp2.responseText
-        assert.equal res, JSON.stringify({test: 'test'})
+        b res, JSON.stringify({test: 'test'})
         resCnt += 1
         if resCnt is 2
           done()
@@ -164,7 +164,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
       done()
 
     xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
@@ -180,7 +180,7 @@ describe 'XMLHttpRequest', ->
       .reply(200, {hello: 'world'}).XMLHttpRequest()
 
     onComplete xmlhttp, ->
-      assert.equal log, 'get http://baseurl.com/test?test=123#hash'
+      b log, 'get http://baseurl.com/test?test=123#hash'
       done()
 
     xmlhttp.open('get', 'http://baseurl.com/test?test=123#hash')
@@ -194,7 +194,7 @@ describe 'XMLHttpRequest', ->
 
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
-      assert.equal res, JSON.stringify({hello: 'world'})
+      b res, JSON.stringify({hello: 'world'})
       done()
 
     xmlhttp.open('get', 'http://baseurl.com/test')
@@ -211,11 +211,11 @@ describe 'XMLHttpRequest', ->
     onComplete xmlhttp, ->
       res = xmlhttp.responseText
       parsed = JSON.parse(res)
-      assert.equal parsed.params.name, 'joe'
-      assert.equal parsed.query.q, 't'
-      assert.equal parsed.query.p, 'plumber'
-      assert.equal parsed.headers.h1, 'head'
-      assert.equal parsed.body.x, 'y'
+      b parsed.params.name, 'joe'
+      b parsed.query.q, 't'
+      b parsed.query.p, 'plumber'
+      b parsed.headers.h1, 'head'
+      b parsed.body.x, 'y'
 
       done()
 
@@ -234,7 +234,7 @@ describe 'XMLHttpRequest', ->
 
           onComplete xmlhttp, ->
             res = xmlhttp.responseText
-            assert.equal res, JSON.stringify({hello: 'world'})
+            b res, JSON.stringify({hello: 'world'})
             resolve()
 
           xmlhttp.open('get', 'http://baseurl.com/test')
@@ -244,6 +244,6 @@ describe 'XMLHttpRequest', ->
     originalXML = window.XMLHttpRequest
     zock
     .withOverrides ->
-      assert window.XMLHttpRequest isnt originalXML
+      b window.XMLHttpRequest isnt originalXML
     .then ->
-      assert.equal window.XMLHttpRequest, originalXML
+      b window.XMLHttpRequest is originalXML
