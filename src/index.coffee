@@ -6,6 +6,7 @@ FakeXMLHttpRequest = require 'fake-xml-http-request'
 
 if window?
   originalXMLHttpRequest = window.XMLHttpRequest
+  originalFetch = window.fetch
 else
   # Avoid webpack include
   httpReq = 'http'
@@ -31,7 +32,13 @@ else
     setTimeout: -> null
 
   class MockClientRequest extends events.EventEmitter
-    constructor: ({@method, @url, @response, @cb}) -> null
+    ###
+    @params {Object} request
+    @params {String} request.method
+    @params {String} request.url
+    @params {RouterResponse} request.response
+    ###
+    constructor: (@request) -> null
     flushHeaders: -> null
     write: (@body) => null
     end: =>
@@ -40,20 +47,20 @@ else
       catch err
         bodyParams = {}
 
-      queryParams = qs.parse(URL.parse(@url).query)
+      queryParams = qs.parse(URL.parse(@request.url).query)
 
-      res = @response.fn(
-        params: @response.params
+      res = @request.response.fn(
+        params: @request.response.params
         query: queryParams
         body: bodyParams
       )
 
       mockIncomingResponse = new MockIncomingResponse({
-        @method
+        method: @request.method
         statusCode: res.statusCode
       })
 
-      @cb(mockIncomingResponse)
+      @request.cb(mockIncomingResponse)
       @emit 'response', mockIncomingResponse
       mockIncomingResponse.push res.body
       mockIncomingResponse.push null
@@ -73,7 +80,7 @@ resultsToRouters = (results) ->
         result.body
 
       _.defaults {
-        body: JSON.stringify body
+        body: JSON.stringify(body) or null
       }, result
     return routers
   , {}
@@ -98,19 +105,19 @@ class Zock
   get: (path) => @request(path, 'get')
   post: (path) => @request(path, 'post')
   put: (path) => @request(path, 'put')
-  withOverride: (fn) =>
+  withOverrides: (fn) =>
     if window?
-      originalRequest = window.XMLHttpRequest
+      window.fetch = @fetch()
       window.XMLHttpRequest = => new @XMLHttpRequest()
     else
-      originalRequest = http.request
       http.request = @nodeRequest()
 
     restore = ->
       if window?
-        window.XMLHttpRequest = originalRequest
+        window.XMLHttpRequest = originalXMLHttpRequest
+        window.fetch = originalFetch
       else
-        http.request = originalRequest
+        http.request = originalHttpRequest
 
     new Promise (resolve) ->
       resolve fn()
@@ -139,6 +146,42 @@ class Zock
   logger: (logFn) =>
     @bind (state) ->
       _.defaults {logFn}, state
+
+  fetch: =>
+    log = @state.logFn or -> null
+    routers = resultsToRouters @state.results
+
+    (url, opts = {}) ->
+      method = opts.method or 'get'
+
+      log "#{method} #{url}"
+
+      parsed = URL.parse url
+      delete parsed.query
+      delete parsed.hash
+      delete parsed.search
+      delete parsed.path
+
+      response = routers[method.toLowerCase()]?.match(URL.format(parsed))
+      unless response
+        return originalFetch.apply null, arguments
+
+      try
+        bodyParams = JSON.parse opts?.body
+      catch err
+        bodyParams = {}
+
+      queryParams = qs.parse(URL.parse(url).query)
+      res = response.fn(
+        params: response.params
+        query: queryParams
+        body: bodyParams
+      )
+      status = res.statusCode or 200
+      headers = new Headers res.headers or {'Content-Type': 'application/json'}
+      body = res.body
+
+      window.Promise.resolve new window.Response(body, {url, status, headers})
 
   nodeRequest: =>
     log = @state.logFn or -> null

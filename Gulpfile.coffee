@@ -12,7 +12,7 @@ paths =
   coffee: ['./src/**/*.coffee', './*.coffee', './test/**/*.coffee']
   cover: ['./src/**/*.coffee', './*.coffee']
   rootScripts: './src/index.coffee'
-  rootTests: './test/index.coffee'
+  rootTests: './test/**/*.coffee'
   build: './build'
   output:
     tests: 'tests.js'

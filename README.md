@@ -48,6 +48,12 @@ window.XMLHttpRequest = zock
   .reply(200, {hello: 'world'})
   .XMLHttpRequest
 
+window.fetch = zock
+  .base('http://baseurl.com')
+  .get('/test')
+  .reply(200, {hello: 'world'})
+  .fetch()
+
 // permanent node.js
 http = require 'http'
 http.request = zock
@@ -92,11 +98,15 @@ zock
 
 Return special XMLHttpRequest stub object based on previous setup
 
+### fetch
+
+Return special fetch stub object based on previous setup
+
 ### nodeRequest
 
 Return special http.request stub object based on previous setup
 
-### withOverride({Function} testCode)
+### withOverrides({Function} testCode)
 
 runs the function passed in with global overrides enabled, and removes after the function returns  
 Supports promises
@@ -107,3 +117,9 @@ Supports promises
 $ npm -d install
 $ npm test
 ```
+
+## Changelog
+
+0.1.3 -> 0.2.0
+  - rename withOverride to withOverrides
+  - add window.fetch support
