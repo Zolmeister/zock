@@ -87,6 +87,14 @@ resultsToRouters = (results) ->
     return routers
   , {}
 
+parseNodeHeaders = (headers) ->
+  _.mapValues headers or {}, (val, key) ->
+    keepAsArrays = ['set-cookie', 'cookie']
+    if not _.includes(keepAsArrays, key) and _.isArray val
+      val.join ','
+    else
+      val
+
 class Zock
   constructor: (@state = {}) -> null
 
@@ -191,7 +199,8 @@ class Zock
     routers = resultsToRouters @state.results
 
     (opts, cb = -> null) ->
-      headers = opts.headers or {}
+      headers = parseNodeHeaders opts.headers or {}
+
       method = opts.method or 'get'
       hostname = opts.hostname or opts.host.split(':')[0]
       base = if opts.port \

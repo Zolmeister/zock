@@ -103,6 +103,9 @@ describe 'http', ->
       method: 'post'
       headers:
         h1: 'head'
+        cookie: ['xxx']
+        'set-cookie': ['yyy']
+        reg: ['one']
       host: 'baseurl.com'
       path: '/test/joe?q=t&p=plumber'
       body: JSON.stringify
@@ -118,6 +121,9 @@ describe 'http', ->
         assert.equal parsed.query.q, 't'
         assert.equal parsed.query.p, 'plumber'
         assert.equal parsed.headers.h1, 'head'
+        assert.equal parsed.headers.reg, 'one'
+        assert.deepEqual parsed.headers.cookie, ['xxx']
+        assert.deepEqual parsed.headers['set-cookie'], ['yyy']
         assert.equal parsed.body.x, 'y'
         done()
       res.on 'error', done
