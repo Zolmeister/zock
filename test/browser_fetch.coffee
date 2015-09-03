@@ -167,12 +167,16 @@ describe 'fetch', ->
   it 'supports functions for body', ->
     fetch = zock
       .base('http://baseurl.com')
-      .get('/test/:name')
+      .post('/test/:name')
       .reply (res) ->
         return res
       .fetch()
 
-    fetch 'http://baseurl.com/test/joe?q=t&p=plumber'
+    fetch 'http://baseurl.com/test/joe?q=t&p=plumber',
+      method: 'POST'
+      headers:
+        'h1': 'head'
+      body: JSON.stringify {x: 'y'}
     .then (res) ->
       res.text()
     .then (text) ->
@@ -180,6 +184,8 @@ describe 'fetch', ->
       assert.equal parsed.params.name, 'joe'
       assert.equal parsed.query.q, 't'
       assert.equal parsed.query.p, 'plumber'
+      assert.equal parsed.headers.h1, 'head'
+      assert.equal parsed.body.x, 'y'
 
   it 'withOverrides', ->
     zock

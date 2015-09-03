@@ -18,10 +18,10 @@ else
   stream = require streamReq
 
   class MockIncomingResponse extends stream.Readable
-    constructor: ({@method, @statusCode}) ->
+    constructor: ({@method, @statusCode, @headers}) ->
       super()
+      @headers ?= {}
       @httpVersion = '1.1'
-      @headers = {}
       @rawHeaders = {}
       @trailers = {}
       @rawTrailers = {}
@@ -53,11 +53,13 @@ else
         params: @request.response.params
         query: queryParams
         body: bodyParams
+        headers: @request.headers
       )
 
       mockIncomingResponse = new MockIncomingResponse({
         method: @request.method
         statusCode: res.statusCode
+        headers: @request.headers
       })
 
       @request.cb(mockIncomingResponse)
@@ -176,9 +178,10 @@ class Zock
         params: response.params
         query: queryParams
         body: bodyParams
+        headers: opts.headers
       )
       status = res.statusCode or 200
-      headers = new Headers res.headers or {'Content-Type': 'application/json'}
+      headers = new Headers res.headers or {}
       body = res.body
 
       window.Promise.resolve new window.Response(body, {url, status, headers})
@@ -188,6 +191,7 @@ class Zock
     routers = resultsToRouters @state.results
 
     (opts, cb = -> null) ->
+      headers = opts.headers or {}
       method = opts.method or 'get'
       hostname = opts.hostname or opts.host.split(':')[0]
       base = if opts.port \
@@ -203,11 +207,15 @@ class Zock
       delete parsed.search
       delete parsed.path
 
-
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
       unless response
         return originalHttpRequest.apply http, arguments
-      new MockClientRequest({method, response, url, cb})
+
+      mock = new MockClientRequest({method, response, url, cb, headers})
+      if opts.body?
+        mock.write opts.body
+      return mock
+
 
   XMLHttpRequest: =>
     log = @state.logFn or -> null
@@ -217,9 +225,11 @@ class Zock
 
     oldOpen = request.open
     oldSend = request.send
+    oldSetRequestHeader = request.setRequestHeader
 
     url = null
     method = null
+    headers = {}
 
     send = (data) ->
       if not response
@@ -236,12 +246,13 @@ class Zock
         params: response.params
         query: queryParams
         body: bodyParams
+        headers: headers
       )
       status = res.statusCode or 200
-      headers = res.headers or {'Content-Type': 'application/json'}
+      resHeaders = res.headers or {}
       body = res.body
 
-      respond = -> request.respond(status, headers, body)
+      respond = -> request.respond(status, resHeaders, body)
 
       setTimeout respond, 0
 
@@ -259,6 +270,9 @@ class Zock
 
       response = routers[method.toLowerCase()]?.match URL.format(parsed)
 
+    setRequestHeader = (header, value) ->
+      headers[header] = value
+
     request.open = ->
       open.apply null, arguments
       oldOpen.apply request, arguments
@@ -266,6 +280,10 @@ class Zock
     request.send = ->
       send.apply null, arguments
       oldSend.apply request, arguments
+
+    request.setRequestHeader = ->
+      setRequestHeader.apply null, arguments
+      oldSetRequestHeader.apply request, arguments
 
     return request
 

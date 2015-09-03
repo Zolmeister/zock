@@ -203,7 +203,7 @@ describe 'XMLHttpRequest', ->
   it 'supports functions for body', (done) ->
     xmlhttp = zock
       .base('http://baseurl.com')
-      .get('/test/:name')
+      .post('/test/:name')
       .reply (res) ->
         return res
       .XMLHttpRequest()
@@ -214,11 +214,14 @@ describe 'XMLHttpRequest', ->
       assert.equal parsed.params.name, 'joe'
       assert.equal parsed.query.q, 't'
       assert.equal parsed.query.p, 'plumber'
+      assert.equal parsed.headers.h1, 'head'
+      assert.equal parsed.body.x, 'y'
 
       done()
 
-    xmlhttp.open('get', 'http://baseurl.com/test/joe?q=t&p=plumber')
-    xmlhttp.send()
+    xmlhttp.open('post', 'http://baseurl.com/test/joe?q=t&p=plumber')
+    xmlhttp.setRequestHeader 'h1', 'head'
+    xmlhttp.send(JSON.stringify {x: 'y'})
 
   it 'withOverrides', ->
     zock

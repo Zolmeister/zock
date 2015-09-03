@@ -94,14 +94,19 @@ describe 'http', ->
   it 'supports functions for body', (done) ->
     request = zock
       .base('http://baseurl.com')
-      .get('/test/:name')
+      .post('/test/:name')
       .reply (res) ->
         return res
       .nodeRequest()
 
     opts =
+      method: 'post'
+      headers:
+        h1: 'head'
       host: 'baseurl.com'
       path: '/test/joe?q=t&p=plumber'
+      body: JSON.stringify
+        x: 'y'
 
     req = request opts, (res) ->
       body = ''
@@ -112,6 +117,8 @@ describe 'http', ->
         assert.equal parsed.params.name, 'joe'
         assert.equal parsed.query.q, 't'
         assert.equal parsed.query.p, 'plumber'
+        assert.equal parsed.headers.h1, 'head'
+        assert.equal parsed.body.x, 'y'
         done()
       res.on 'error', done
 
