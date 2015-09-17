@@ -33,7 +33,7 @@ zock
     // req.body = post body (only supports JSON at the moment)
     return req
   })
-  .withOverride(function() {
+  .withOverrides(function() {
     request('http://baseurl.com/test')
     .then(function (result) {
       // result = {hello: 'world'}
