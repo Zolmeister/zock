@@ -49,23 +49,22 @@ else
 
       queryParams = qs.parse(URL.parse(@request.url).query)
 
-      res = @request.response.fn(
+      @request.response.fn
         params: @request.response.params
         query: queryParams
         body: bodyParams
         headers: @request.headers
-      )
+      .then (res) =>
+        mockIncomingResponse = new MockIncomingResponse({
+          method: @request.method
+          statusCode: res.statusCode
+          headers: @request.headers
+        })
 
-      mockIncomingResponse = new MockIncomingResponse({
-        method: @request.method
-        statusCode: res.statusCode
-        headers: @request.headers
-      })
-
-      @request.cb(mockIncomingResponse)
-      @emit 'response', mockIncomingResponse
-      mockIncomingResponse.push res.body
-      mockIncomingResponse.push null
+        @request.cb(mockIncomingResponse)
+        @emit 'response', mockIncomingResponse
+        mockIncomingResponse.push res.body
+        mockIncomingResponse.push null
     abort: -> null
     setTimeout: -> null
     setNoDelay: -> null
@@ -81,9 +80,11 @@ resultsToRouters = (results) ->
       else
         result.body
 
-      _.defaults {
-        body: JSON.stringify(body) or null
-      }, result
+      Promise.resolve body
+      .then (body) ->
+        _.defaults {
+          body: JSON.stringify(body) or null
+        }, result
     return routers
   , {}
 
@@ -182,17 +183,17 @@ class Zock
         bodyParams = {}
 
       queryParams = qs.parse(URL.parse(url).query)
-      res = response.fn(
+      response.fn
         params: response.params
         query: queryParams
         body: bodyParams
         headers: opts.headers
-      )
-      status = res.statusCode or 200
-      headers = new Headers res.headers or {}
-      body = res.body
+      .then (res) ->
+        status = res.statusCode or 200
+        headers = new Headers res.headers or {}
+        body = res.body
 
-      window.Promise.resolve new window.Response(body, {url, status, headers})
+        new window.Response(body, {url, status, headers})
 
   nodeRequest: =>
     log = @state.logFn or -> null
@@ -251,19 +252,19 @@ class Zock
 
       queryParams = qs.parse(URL.parse(request.url).query)
 
-      res = response.fn(
+      response.fn
         params: response.params
         query: queryParams
         body: bodyParams
         headers: headers
-      )
-      status = res.statusCode or 200
-      resHeaders = res.headers or {}
-      body = res.body
+      .then (res) ->
+        status = res.statusCode or 200
+        resHeaders = res.headers or {}
+        body = res.body
 
-      respond = -> request.respond(status, resHeaders, body)
+        respond = -> request.respond(status, resHeaders, body)
 
-      setTimeout respond, 0
+        setTimeout respond, 0
 
     open = (_method, _url) ->
       url = _url

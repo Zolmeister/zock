@@ -223,6 +223,25 @@ describe 'XMLHttpRequest', ->
     xmlhttp.setRequestHeader 'h1', 'head'
     xmlhttp.send(JSON.stringify {x: 'y'})
 
+  it 'supports promises from functions for body', (done) ->
+    xmlhttp = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (res) ->
+        Promise.resolve res
+      .XMLHttpRequest()
+
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      parsed = JSON.parse(res)
+      b parsed.params.name, 'joe'
+      b parsed.body.x, 'y'
+
+      done()
+
+    xmlhttp.open('post', 'http://baseurl.com/test/joe')
+    xmlhttp.send(JSON.stringify {x: 'y'})
+
   it 'withOverrides', ->
     zock
       .base('http://baseurl.com')

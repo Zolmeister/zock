@@ -187,6 +187,24 @@ describe 'fetch', ->
       b parsed.headers.h1, 'head'
       b parsed.body.x, 'y'
 
+  it 'supports promises from functions for body', ->
+    fetch = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (res) ->
+        Promise.resolve res
+      .fetch()
+
+    fetch 'http://baseurl.com/test/joe',
+      method: 'POST'
+      body: JSON.stringify {x: 'y'}
+    .then (res) ->
+      res.text()
+    .then (text) ->
+      parsed = JSON.parse(text)
+      b parsed.params.name, 'joe'
+      b parsed.body.x, 'y'
+
   it 'withOverrides', ->
     zock
       .base('http://baseurl.com')

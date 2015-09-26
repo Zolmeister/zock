@@ -130,6 +130,35 @@ describe 'http', ->
 
     req.end()
 
+
+  it 'supports promises from functions for body', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (res) ->
+        Promise.resolve res
+      .nodeRequest()
+
+    opts =
+      method: 'post'
+      host: 'baseurl.com'
+      path: '/test/joe'
+      body: JSON.stringify
+        x: 'y'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        parsed = JSON.parse(body)
+        b parsed.params.name, 'joe'
+        b parsed.body.x, 'y'
+        done()
+      res.on 'error', done
+
+    req.end()
+
   it 'should post', (done) ->
     request = zock
       .base('http://baseurl.com')
