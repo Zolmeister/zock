@@ -71,7 +71,10 @@ else
     setSocketKeepAlive: -> null
 
 resultsToRouters = (results) ->
-  _.reduce results, (routers, result) ->
+  routers = _.reduce results, (routers, result) ->
+    if result.method is 'exoid'
+      return routers
+
     routers[result.method] ?= Router()
     routers[result.method].addRoute result.url, (request) ->
       # FIXME: this is wrong, it assumes a JSON object always
@@ -87,6 +90,41 @@ resultsToRouters = (results) ->
         }, result
     return routers
   , {}
+
+  bases = _.groupBy results, 'baseUrl'
+  routers['post'] ?= Router()
+  _.map bases, (results, baseUrl) ->
+    routers['post'].addRoute baseUrl + '/exoid', (request) ->
+      Promise.all _.map request.body.requests, (request) ->
+        result = _.find results, {path: request.path}
+        unless result?
+          return Promise.resolve {
+            error: {
+              status: 404
+              info: "handler not found for path #{request.path}"
+            }
+          }
+
+        new Promise (resolve) ->
+          # FIXME: this is wrong, it assumes a JSON object always
+          resolve if _.isFunction result.body
+            result.body request
+          else
+            result.body
+        .then (body) -> {response: body}
+        .catch (error) ->
+          if error._exoid
+            {error: {status: error.status, info: error.info}}
+          else
+            {error: {status: 500}}
+      .then (responses) ->
+        statusCode: 200
+        body: JSON.stringify
+          results: _.pluck responses, 'response'
+          errors: _.pluck responses, 'error'
+          cache: []
+
+  return routers
 
 parseNodeHeaders = (headers) ->
   _.mapValues headers or {}, (val, key) ->
@@ -116,6 +154,7 @@ class Zock
   get: (path) => @request(path, 'get')
   post: (path) => @request(path, 'post')
   put: (path) => @request(path, 'put')
+  exoid: (path) => @request(path, 'exoid')
   withOverrides: (fn) =>
     if window?
       window.fetch = @fetch()
@@ -149,6 +188,8 @@ class Zock
         statusCode: status
         body
         url: (state.baseUrl or '') + state.path
+        path: state.path
+        baseUrl: state.baseUrl
         method: state.method
       }
 

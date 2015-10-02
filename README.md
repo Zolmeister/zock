@@ -79,6 +79,11 @@ Begin defining a mocked POST request
 
 Begin defining a mocked PUT request
 
+### exoid({String} path)
+
+Begin defining a mocked Exoid request  
+see https://github.com/Zorium/exoid for more information
+
 ### reply({String} [status]=200, {Object|Function} response)
 
 Define reply for the previously defined mock request

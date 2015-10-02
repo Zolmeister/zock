@@ -241,6 +241,76 @@ describe 'http', ->
     req.write '{"something": "cool"}'
     req.end()
 
+  it 'should exoid', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .exoid('test')
+      .reply({hello: 'exoid'}).nodeRequest()
+
+    opts =
+      method: 'post'
+      host: 'baseurl.com'
+      path: '/exoid'
+      body:
+        requests: [
+          {path: 'test'}
+        ]
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, JSON.stringify {
+          results: [{hello: 'exoid'}]
+          errors: [null]
+          cache: []
+        }
+        done()
+      res.on 'error', done
+
+    req.end()
+
+  it 'should exoid data', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .exoid('test')
+      .reply {hello: 'exoid'}
+      .exoid('error')
+      .reply ->
+        throw {_exoid: true, status: 404, info: 'not found'}
+      .exoid('testData')
+      .reply((req) ->
+        b req, {path: 'testData', body: {bb: 'cc'}}
+        return {dd: 'ee'}
+      ).nodeRequest()
+
+    opts =
+      method: 'post'
+      host: 'baseurl.com'
+      path: '/exoid'
+      body:
+        requests: [
+          {path: 'test'}
+          {path: 'testData', body: {bb: 'cc'}}
+          {path: 'error'}
+        ]
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, JSON.stringify {
+          results: [{hello: 'exoid'}, {dd: 'ee'}, null]
+          errors: [null, null, {status: 404, info: 'not found'}]
+          cache: []
+        }
+        done()
+      res.on 'error', done
+
+    req.end()
+
   it 'should get multiple at the same time', (done) ->
     request = zock
       .base('http://baseurl.com')
