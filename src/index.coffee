@@ -94,8 +94,8 @@ resultsToRouters = (results) ->
   bases = _.groupBy results, 'baseUrl'
   routers['post'] ?= Router()
   _.map bases, (results, baseUrl) ->
-    routers['post'].addRoute baseUrl + '/exoid', (request) ->
-      Promise.all _.map request.body.requests, (request) ->
+    routers['post'].addRoute baseUrl + '/exoid', (batchRequest) ->
+      Promise.all _.map batchRequest.body.requests, (request) ->
         result = _.find results, {path: request.path}
         unless result?
           return Promise.resolve {
@@ -108,7 +108,7 @@ resultsToRouters = (results) ->
         new Promise (resolve) ->
           # FIXME: this is wrong, it assumes a JSON object always
           resolve if _.isFunction result.body
-            result.body request
+            result.body request, batchRequest
           else
             result.body
         .then (body) -> {response: body}

@@ -280,8 +280,9 @@ describe 'http', ->
       .reply ->
         throw {_exoid: true, status: 404, info: 'not found'}
       .exoid('testData')
-      .reply((req) ->
+      .reply((req, batchRequest) ->
         b req, {path: 'testData', body: {bb: 'cc'}}
+        b batchRequest?
         return {dd: 'ee'}
       ).nodeRequest()
 
