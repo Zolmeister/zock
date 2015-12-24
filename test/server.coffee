@@ -283,6 +283,7 @@ describe 'http', ->
       .reply((req, batchRequest) ->
         b req, {path: 'testData', body: {bb: 'cc'}}
         b batchRequest?
+        batchRequest.cache('testpath', 'testvalue')
         return {dd: 'ee'}
       ).nodeRequest()
 
@@ -305,7 +306,7 @@ describe 'http', ->
         b body, JSON.stringify {
           results: [{hello: 'exoid'}, {dd: 'ee'}, null]
           errors: [null, null, {status: 404, info: 'not found'}]
-          cache: []
+          cache: [{path: 'testpath', result: 'testvalue'}]
         }
         done()
       res.on 'error', done

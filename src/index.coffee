@@ -95,6 +95,7 @@ resultsToRouters = (results) ->
   routers['post'] ?= Router()
   _.map bases, (results, baseUrl) ->
     routers['post'].addRoute baseUrl + '/exoid', (batchRequest) ->
+      cache = []
       Promise.all _.map batchRequest.body.requests, (request) ->
         result = _.find results, {path: request.path}
         unless result?
@@ -108,7 +109,13 @@ resultsToRouters = (results) ->
         new Promise (resolve) ->
           # FIXME: this is wrong, it assumes a JSON object always
           resolve if _.isFunction result.body
-            result.body request, batchRequest
+            result.body request, _.defaults {
+              cache: (id, resource) ->
+                if _.isPlainObject id
+                  resource = id
+                  id = id.id
+                cache.push {path: id, result: resource}
+            }, batchRequest
           else
             result.body
         .then (body) -> {response: body}
@@ -122,7 +129,7 @@ resultsToRouters = (results) ->
         body: JSON.stringify
           results: _.pluck responses, 'response'
           errors: _.pluck responses, 'error'
-          cache: []
+          cache: cache
 
   return routers
 
