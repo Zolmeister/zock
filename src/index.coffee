@@ -252,9 +252,10 @@ class Zock
 
       method = opts.method or 'get'
       hostname = opts.hostname or opts.host.split(':')[0]
-      base = if opts.port \
-        then "http://#{hostname}:#{opts.port}"
-        else "http://#{hostname}"
+      protocol = opts.protocol or 'http:'
+      base = "#{protocol}//#{hostname}"
+      if opts.port?
+        base += ":#{opts.port}"
       url = base + (opts.path or '/')
 
       log "#{method} #{url}"

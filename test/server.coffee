@@ -32,6 +32,29 @@ describe 'http', ->
 
     req.end()
 
+  it 'should get https', (done) ->
+    request = zock
+      .base('https://baseurl.com')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+      .nodeRequest()
+
+    opts =
+      protocol: 'https:'
+      host: 'baseurl.com'
+      path: '/test'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, JSON.stringify {hello: 'world'}
+        done()
+      res.on 'error', done
+
+    req.end()
+
   it 'should get with pathed base', (done) ->
     request = zock
       .base('http://baseurl.com/api')
