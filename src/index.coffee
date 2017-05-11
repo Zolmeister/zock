@@ -315,7 +315,10 @@ class Zock
 
         setTimeout respond, 0
 
-    open = (_method, _url) ->
+    open = (_method, _url, isAsync) ->
+      if isAsync is false
+        throw new Error 'Syncronous XMLHttpRequest not supported'
+
       url = _url
       method = _method
 

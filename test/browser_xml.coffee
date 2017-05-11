@@ -27,6 +27,14 @@ describe 'XMLHttpRequest', ->
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
 
+  it 'should fail if syncronous', (done) ->
+    xmlhttp = zock.XMLHttpRequest()
+    try
+      xmlhttp.open('get', 'http://baseurl.com/test', false)
+      done(new Error 'Expected error')
+    catch
+      done()
+
   it 'should get with pathed base', (done) ->
     xmlhttp = zock
       .base('http://baseurl.com/api')
