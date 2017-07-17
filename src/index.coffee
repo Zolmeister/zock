@@ -27,7 +27,7 @@ else
       @rawTrailers = {}
       @url = ''
       @statusMessage = 'STATUS MESSAGE'
-      @socket = null
+      @socket = {authorized: true}
     _read: -> undefined
     setTimeout: -> null
 
