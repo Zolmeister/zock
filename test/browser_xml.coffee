@@ -1,5 +1,3 @@
-require './polyfill'
-
 b = require 'b-assert'
 
 zock = require '../src'
@@ -10,9 +8,6 @@ onComplete = (xmlhttp, fn) ->
       fn()
 
 describe 'XMLHttpRequest', ->
-  unless window?
-    return
-
   it 'should get', (done) ->
     xmlhttp = zock
       .base('http://baseurl.com')

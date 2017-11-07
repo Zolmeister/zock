@@ -1,13 +1,8 @@
-require './polyfill'
-
 b = require 'b-assert'
 
 zock = require '../src'
 
 describe 'fetch', ->
-  unless window? and window.fetch
-    return
-
   it 'should get', ->
     fetch = zock
       .base('http://baseurl.com')

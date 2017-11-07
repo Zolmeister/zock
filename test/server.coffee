@@ -1,15 +1,9 @@
 b = require 'b-assert'
+http = require 'http'
 
 zock = require '../src'
 
-unless window?
-  httpReq = 'http'
-  http = require httpReq
-
 describe 'http', ->
-  if window?
-    return
-
   it 'should get', (done) ->
     request = zock
       .base('http://baseurl.com')
@@ -31,6 +25,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should get https', (done) ->
     request = zock
@@ -54,6 +49,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should get with pathed base', (done) ->
     request = zock
@@ -75,6 +71,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'supports multiple bases', (done) ->
     request = zock
@@ -113,6 +110,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'supports functions for body', (done) ->
     request = zock
@@ -152,6 +150,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
 
   it 'supports promises from functions for body', (done) ->
@@ -181,6 +180,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should post', (done) ->
     request = zock
@@ -203,6 +203,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should post data', (done) ->
     request = zock
@@ -222,6 +223,7 @@ describe 'http', ->
 
     req.write '{"something": "cool"}'
     req.end()
+    null
 
   it 'should put', (done) ->
     request = zock
@@ -244,6 +246,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should put data', (done) ->
     request = zock
@@ -263,6 +266,7 @@ describe 'http', ->
 
     req.write '{"something": "cool"}'
     req.end()
+    null
 
   it 'should exoid', (done) ->
     request = zock
@@ -293,6 +297,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should exoid data', (done) ->
     request = zock
@@ -335,6 +340,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'should get multiple at the same time', (done) ->
     request = zock
@@ -378,6 +384,7 @@ describe 'http', ->
       res.on 'error', done
 
     req2.end()
+    null
 
   it 'should ignore query params and hashes', (done) ->
     request = zock
@@ -399,6 +406,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'logs', (done) ->
     log = 'null'
@@ -421,6 +429,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'has optional status', (done) ->
     request = zock
@@ -442,6 +451,7 @@ describe 'http', ->
       res.on 'error', done
 
     req.end()
+    null
 
   it 'withOverrides', ->
     zock
