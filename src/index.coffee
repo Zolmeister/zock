@@ -44,7 +44,7 @@ else
     end: =>
       try
         bodyParams = JSON.parse @body
-      catch err
+      catch
         bodyParams = @body
 
       queryParams = qs.parse(URL.parse(@request.url).query)
@@ -225,7 +225,7 @@ class Zock
 
       try
         bodyParams = JSON.parse opts?.body
-      catch err
+      catch
         bodyParams = opts?.body
 
       queryParams = qs.parse(URL.parse(url).query)
@@ -294,7 +294,7 @@ class Zock
 
       try
         bodyParams = JSON.parse data
-      catch err
+      catch
         bodyParams = data
 
       queryParams = qs.parse(URL.parse(request.url).query)
