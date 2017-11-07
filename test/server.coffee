@@ -212,6 +212,7 @@ describe 'http', ->
       .reply(200, (res) ->
         b res.body, {something: 'cool'}
         done()
+        return ''
       ).nodeRequest()
 
     opts =
@@ -255,6 +256,7 @@ describe 'http', ->
       .reply(200, (res) ->
         b res.body, {something: 'cool'}
         done()
+        return ''
       ).nodeRequest()
 
     opts =
@@ -482,3 +484,26 @@ describe 'http', ->
       null
     .then ->
       b http.request is original
+
+  it 'supports non-JSON responses', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> 'abc'
+      .nodeRequest()
+
+    opts =
+      host: 'baseurl.com'
+      path: '/test'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, 'abc'
+        done()
+      res.on 'error', done
+
+    req.end()
+    null

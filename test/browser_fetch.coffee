@@ -219,3 +219,15 @@ describe 'fetch', ->
       b window.fetch isnt originalFetch
     .then ->
       b window.fetch is originalFetch
+
+  it 'supports non-JSON responses', ->
+    fetch = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> 'abc'
+      .fetch()
+
+    fetch 'http://baseurl.com/test'
+    .then (res) -> res.text()
+    .then (text) ->
+      b text, 'abc'

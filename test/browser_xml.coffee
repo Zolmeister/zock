@@ -96,6 +96,7 @@ describe 'XMLHttpRequest', ->
       .reply(200, (res) ->
         b res.body, {something: 'cool'}
         done()
+        return ''
       ).XMLHttpRequest()
 
     xmlhttp.open('post', 'http://baseurl.com/test')
@@ -122,6 +123,7 @@ describe 'XMLHttpRequest', ->
       .reply(200, (res) ->
         b res.body, {something: 'cool'}
         done()
+        return ''
       ).XMLHttpRequest()
 
     xmlhttp.open('put', 'http://baseurl.com/test')
@@ -269,3 +271,18 @@ describe 'XMLHttpRequest', ->
       b window.XMLHttpRequest isnt originalXML
     .then ->
       b window.XMLHttpRequest is originalXML
+
+  it 'supports non-JSON responses', (done) ->
+    xmlhttp = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> 'abc'
+      .XMLHttpRequest()
+
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      b res, 'abc'
+      done()
+
+    xmlhttp.open('get', 'http://baseurl.com/test')
+    xmlhttp.send()

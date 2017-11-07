@@ -77,7 +77,6 @@ resultsToRouters = (results) ->
 
     routers[result.method] ?= Router()
     routers[result.method].addRoute result.url, (request) ->
-      # FIXME: this is wrong, it assumes a JSON object always
       body = if _.isFunction result.body
         result.body request
       else
@@ -86,7 +85,7 @@ resultsToRouters = (results) ->
       Promise.resolve body
       .then (body) ->
         _.defaults {
-          body: JSON.stringify(body) or null
+          body: if _.isPlainObject(body) then JSON.stringify(body) else body
         }, result
     return routers
   , {}
@@ -107,7 +106,6 @@ resultsToRouters = (results) ->
           }
 
         new Promise (resolve) ->
-          # FIXME: this is wrong, it assumes a JSON object always
           resolve if _.isFunction result.body
             result.body request, _.defaults {
               cache: (id, resource) ->
