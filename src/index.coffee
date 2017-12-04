@@ -143,7 +143,7 @@ parseNodeHeaders = (headers) ->
       val
 
 class Zock
-  constructor: (@state = {}) -> null
+  constructor: (@state = {allowOutbound: false}) -> null
 
   bind: (transform) =>
     new Zock(transform(@state))
@@ -154,6 +154,10 @@ class Zock
   base: (baseUrl) =>
     @bind (state) ->
       _.defaults {baseUrl}, state
+
+  allowOutbound: =>
+    @bind (state) ->
+      _.defaults {allowOutbound: true}, state
 
   request: (path, method) =>
     @bind (state) ->
@@ -212,6 +216,7 @@ class Zock
   fetch: =>
     log = @state.logFn or -> null
     routers = resultsToRouters @state.results
+    allowOutbound = @state.allowOutbound
 
     (url, opts = {}) ->
       method = opts.method or 'get'
@@ -225,8 +230,15 @@ class Zock
       delete parsed.path
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
-      unless response
-        return originalFetch.apply null, arguments
+      unless response?
+        if allowOutbound
+          return originalFetch.apply null, arguments
+        else
+          response =
+            fn: -> Promise.resolve {
+              statusCode: 500
+              body: null
+            }
 
       try
         bodyParams = JSON.parse opts?.body
@@ -250,13 +262,16 @@ class Zock
     log = @state.logFn or -> null
     routers = resultsToRouters @state.results
     defaultProtocol = if isHttps then 'https:' else 'http:'
+    allowOutbound = @state.allowOutbound
 
     (opts, cb = -> null) ->
       headers = parseNodeHeaders opts.headers or {}
 
-      method = opts.method or 'get'
-      hostname = opts.hostname or opts.host.split(':')[0]
-      protocol = opts.protocol or defaultProtocol
+      {method, hostname, protocol} = _.assign {
+        method: 'get'
+        hostname: opts.host.split(':')[0]
+        protocol: defaultProtocol
+      }, opts
       base = "#{protocol}//#{hostname}"
       if opts.port?
         base += ":#{opts.port}"
@@ -271,11 +286,18 @@ class Zock
       delete parsed.path
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
-      unless response
-        if isHttps
-          return originalHttpsRequest.apply https, arguments
+      unless response?
+        if allowOutbound
+          if isHttps
+            return originalHttpsRequest.apply https, arguments
+          else
+            return originalHttpRequest.apply http, arguments
         else
-          return originalHttpRequest.apply http, arguments
+          response =
+            fn: -> Promise.resolve {
+              statusCode: 500
+              body: null
+            }
 
       mock = new MockClientRequest({method, response, url, cb, headers})
       if opts.body?
@@ -288,6 +310,7 @@ class Zock
     request = new FakeXMLHttpRequest()
     response = null
     routers = resultsToRouters @state.results
+    allowOutbound = @state.allowOutbound
 
     oldOpen = request.open
     oldSend = request.send
@@ -298,8 +321,15 @@ class Zock
     headers = {}
 
     send = (data) ->
-      if not response
-        throw new Error("No route for #{method} #{url}")
+      if not response?
+        if allowOutbound
+          throw new Error 'Outbound request not implemented for XMLHttpRequest'
+        else
+          response =
+            fn: -> Promise.resolve {
+              statusCode: 500
+              body: null
+            }
 
       try
         bodyParams = JSON.parse data

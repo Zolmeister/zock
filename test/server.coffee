@@ -529,3 +529,25 @@ describe 'http', ->
 
     req.end()
     null
+
+  it 'defaults to rejecting outbound requests', (done) ->
+    request = zock
+      .nodeRequest()
+
+    requestAllow = zock
+      .allowOutbound()
+      .nodeRequest()
+
+    opts =
+      host: 'zolmeister.com'
+      path: '/'
+
+    req = request opts, (res) ->
+      b res.statusCode, 500
+
+      reqAllow = requestAllow opts, (res) ->
+        b res.statusCode, 301
+        done()
+      reqAllow.end()
+    req.end()
+    null

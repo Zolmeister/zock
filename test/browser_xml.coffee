@@ -286,3 +286,16 @@ describe 'XMLHttpRequest', ->
 
     xmlhttp.open('get', 'http://baseurl.com/test')
     xmlhttp.send()
+
+  # TODO: support allowOutbound()
+  it 'defaults to rejecting outbound requests', (done) ->
+    xmlhttp = zock
+      .XMLHttpRequest()
+
+    onComplete xmlhttp, ->
+      b xmlhttp.status, 500
+
+      done()
+
+    xmlhttp.open('get', 'https://gwent.io/api/obelix/v1/ping')
+    xmlhttp.send()

@@ -231,3 +231,19 @@ describe 'fetch', ->
     .then (res) -> res.text()
     .then (text) ->
       b text, 'abc'
+
+  it 'defaults to rejecting outbound requests', ->
+    fetch = zock
+      .fetch()
+
+    fetchAllow = zock
+      .allowOutbound()
+      .fetch()
+
+    fetch 'https://gwent.io/api/obelix/v1/ping'
+    .then (res) ->
+      b res.status, 500
+    .then ->
+      fetchAllow 'https://gwent.io/api/obelix/v1/ping'
+    .then (res) ->
+      b res.status, 200

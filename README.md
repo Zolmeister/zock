@@ -116,6 +116,10 @@ Return special http.request (or https.request) stub object based on previous set
 runs the function passed in with global overrides enabled, and removes after the function returns
 Supports promises
 
+### allowOutbound()
+
+Allow outbound network requests
+
 ## Contributing
 
 ```sh
@@ -124,6 +128,11 @@ $ npm test
 ```
 
 ## Changelog
+
+0.2.10 -> 0.3.0
+  - [node] support https
+  - outbound requests fail by default
+  - add `allowOutbound()`
 
 0.1.3 -> 0.2.0
   - rename withOverride to withOverrides
