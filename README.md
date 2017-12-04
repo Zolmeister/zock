@@ -1,7 +1,7 @@
 # Zock [![Build Status](https://drone.io/github.com/claydotio/zock/status.png)](https://drone.io/github.com/claydotio/zock/latest)
 
-Zock is an HTTP mocking library for **both** node.js and the browser  
-Similar to [Nock](https://github.com/pgte/nock) (but isomorphic)  
+Zock is an HTTP mocking library for **both** node.js and the browser
+Similar to [Nock](https://github.com/pgte/nock) (but isomorphic)
 
 Contributions weclome!
 
@@ -81,7 +81,7 @@ Begin defining a mocked PUT request
 
 ### exoid({String} path)
 
-Begin defining a mocked Exoid request  
+Begin defining a mocked Exoid request
 see https://github.com/Zorium/exoid for more information
 
 ### reply({String} [status]=200, {Object|Function} response)
@@ -107,13 +107,13 @@ Return special XMLHttpRequest stub object based on previous setup
 
 Return special fetch stub object based on previous setup
 
-### nodeRequest
+### nodeRequest({Boolean} [isHttps]=false)
 
-Return special http.request stub object based on previous setup
+Return special http.request (or https.request) stub object based on previous setup
 
 ### withOverrides({Function} testCode)
 
-runs the function passed in with global overrides enabled, and removes after the function returns  
+runs the function passed in with global overrides enabled, and removes after the function returns
 Supports promises
 
 ## Contributing

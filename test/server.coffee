@@ -1,5 +1,6 @@
 b = require 'b-assert'
 http = require 'http'
+https = require 'https'
 
 zock = require '../src'
 
@@ -32,10 +33,9 @@ describe 'http', ->
       .base('https://baseurl.com')
       .get('/test')
       .reply(200, {hello: 'world'})
-      .nodeRequest()
+      .nodeRequest(true)
 
     opts =
-      protocol: 'https:'
       host: 'baseurl.com'
       path: '/test'
 
@@ -467,6 +467,28 @@ describe 'http', ->
             path: '/test'
 
           req = http.request opts, (res) ->
+            body = ''
+            res.on 'data', (chunk) ->
+              body += chunk
+            res.on 'end', ->
+              b body, JSON.stringify {hello: 'world'}
+              resolve()
+            res.on 'error', reject
+
+          req.end()
+
+  it 'withOverrides https', ->
+    zock
+      .base('https://baseurl.com')
+      .get('/test')
+      .reply({hello: 'world'})
+      .withOverrides ->
+        new Promise (resolve, reject) ->
+          opts =
+            host: 'baseurl.com'
+            path: '/test'
+
+          req = https.request opts, (res) ->
             body = ''
             res.on 'data', (chunk) ->
               body += chunk

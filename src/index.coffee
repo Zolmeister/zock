@@ -12,6 +12,9 @@ else
   httpReq = 'http'
   http = require httpReq
   originalHttpRequest = http.request
+  httpsReq = 'https'
+  https = require httpsReq
+  originalHttpsRequest = https.request
   eventsReq = 'events'
   events = require eventsReq
   streamReq = 'stream'
@@ -166,6 +169,7 @@ class Zock
       window.XMLHttpRequest = => new @XMLHttpRequest()
     else
       http.request = @nodeRequest()
+      https.request = @nodeRequest(true)
 
     restore = ->
       if window?
@@ -173,6 +177,7 @@ class Zock
         window.fetch = originalFetch
       else
         http.request = originalHttpRequest
+        https.request = originalHttpsRequest
 
     new Promise (resolve) ->
       resolve fn()
@@ -241,16 +246,17 @@ class Zock
 
         new window.Response(body, {url, status, headers})
 
-  nodeRequest: =>
+  nodeRequest: (isHttps = false) =>
     log = @state.logFn or -> null
     routers = resultsToRouters @state.results
+    defaultProtocol = if isHttps then 'https:' else 'http:'
 
     (opts, cb = -> null) ->
       headers = parseNodeHeaders opts.headers or {}
 
       method = opts.method or 'get'
       hostname = opts.hostname or opts.host.split(':')[0]
-      protocol = opts.protocol or 'http:'
+      protocol = opts.protocol or defaultProtocol
       base = "#{protocol}//#{hostname}"
       if opts.port?
         base += ":#{opts.port}"
@@ -266,7 +272,10 @@ class Zock
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
       unless response
-        return originalHttpRequest.apply http, arguments
+        if isHttps
+          return originalHttpsRequest.apply https, arguments
+        else
+          return originalHttpRequest.apply http, arguments
 
       mock = new MockClientRequest({method, response, url, cb, headers})
       if opts.body?
