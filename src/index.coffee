@@ -63,10 +63,17 @@ else
           statusCode: res.statusCode
           headers: @request.headers
         })
+        body = if typeof res.body is 'string'
+          res.body
+        else
+          try
+            JSON.stringify res.body
+          catch
+            String res.body
 
         @request.cb(mockIncomingResponse)
         @emit 'response', mockIncomingResponse
-        mockIncomingResponse.push res.body
+        mockIncomingResponse.push body
         mockIncomingResponse.push null
     abort: -> null
     setTimeout: -> null
@@ -254,7 +261,13 @@ class Zock
       .then (res) ->
         status = res.statusCode or 200
         headers = new Headers res.headers or {}
-        body = res.body
+        body = if typeof res.body is 'string'
+          res.body
+        else
+          try
+            JSON.stringify res.body
+          catch
+            String res.body
 
         new window.Response(body, {url, status, headers})
 
@@ -346,7 +359,13 @@ class Zock
       .then (res) ->
         status = res.statusCode or 200
         resHeaders = res.headers or {}
-        body = res.body
+        body = if typeof res.body is 'string'
+          res.body
+        else
+          try
+            JSON.stringify res.body
+          catch
+            String res.body
 
         respond = -> request.respond(status, resHeaders, body)
 

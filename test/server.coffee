@@ -534,7 +534,24 @@ describe 'http', ->
     request = zock
       .nodeRequest()
 
-    requestAllow = zock
+    opts =
+      host: 'zolmeister.com'
+      path: '/'
+
+    req = request opts, (res) ->
+      b res.statusCode, 500
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, ''
+        done()
+      res.on 'error', done
+    req.end()
+    null
+
+  it 'allows outbound requests', (done) ->
+    request = zock
       .allowOutbound()
       .nodeRequest()
 
@@ -543,11 +560,36 @@ describe 'http', ->
       path: '/'
 
     req = request opts, (res) ->
-      b res.statusCode, 500
-
-      reqAllow = requestAllow opts, (res) ->
-        b res.statusCode, 301
+      b res.statusCode, 301
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, ''
         done()
-      reqAllow.end()
+      res.on 'error', done
+    req.end()
+    null
+
+  it 'supports JSON array response', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> [{x: 'y'}]
+      .nodeRequest()
+
+    opts =
+      host: 'baseurl.com'
+      path: '/test'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, '[{"x":"y"}]'
+        done()
+      res.on 'error', done
+
     req.end()
     null

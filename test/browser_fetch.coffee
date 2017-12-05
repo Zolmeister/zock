@@ -247,3 +247,15 @@ describe 'fetch', ->
       fetchAllow 'https://gwent.io/api/obelix/v1/ping'
     .then (res) ->
       b res.status, 200
+
+  it 'supports JSON array responses', ->
+    fetch = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> [{x: 'y'}]
+      .fetch()
+
+    fetch 'http://baseurl.com/test'
+    .then (res) -> res.json()
+    .then (arr) ->
+      b arr, [{x: 'y'}]

@@ -299,3 +299,18 @@ describe 'XMLHttpRequest', ->
 
     xmlhttp.open('get', 'https://gwent.io/api/obelix/v1/ping')
     xmlhttp.send()
+
+  it 'supports JSON array responses', (done) ->
+    xmlhttp = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply -> [{x: 'y'}]
+      .XMLHttpRequest()
+
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      b res, '[{"x":"y"}]'
+      done()
+
+    xmlhttp.open('get', 'http://baseurl.com/test')
+    xmlhttp.send()
