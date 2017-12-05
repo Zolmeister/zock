@@ -13,7 +13,7 @@ describe 'http', ->
       .nodeRequest()
 
     opts =
-      host: 'baseurl.com'
+      hostname: 'baseurl.com'
       path: '/test'
 
     req = request opts, (res) ->

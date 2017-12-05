@@ -269,7 +269,7 @@ class Zock
 
       {method, hostname, protocol} = _.assign {
         method: 'get'
-        hostname: opts.host.split(':')[0]
+        hostname: opts.host?.split(':')[0]
         protocol: defaultProtocol
       }, opts
       base = "#{protocol}//#{hostname}"
