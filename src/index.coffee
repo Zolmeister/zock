@@ -237,7 +237,7 @@ class Zock
           response =
             fn: -> Promise.resolve {
               statusCode: 500
-              body: null
+              body: ''
             }
 
       try
@@ -296,7 +296,7 @@ class Zock
           response =
             fn: -> Promise.resolve {
               statusCode: 500
-              body: null
+              body: ''
             }
 
       mock = new MockClientRequest({method, response, url, cb, headers})
@@ -328,7 +328,7 @@ class Zock
           response =
             fn: -> Promise.resolve {
               statusCode: 500
-              body: null
+              body: ''
             }
 
       try

@@ -36,8 +36,6 @@ gulp.task 'test:browser', ['scripts:test'], (cb) ->
     client:
       useIframe: true
       captureConsole: true
-      mocha:
-        timeout: 500
     files: [
       "#{paths.build}/#{paths.output.tests}"
     ]
