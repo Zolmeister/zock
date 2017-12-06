@@ -539,12 +539,12 @@ describe 'http', ->
       path: '/'
 
     req = request opts, (res) ->
-      b res.statusCode, 500
+      b res.statusCode, 503
       body = ''
       res.on 'data', (chunk) ->
         body += chunk
       res.on 'end', ->
-        b body, ''
+        b body, 'Invalid Outbound Request: http://zolmeister.com/'
         done()
       res.on 'error', done
     req.end()

@@ -242,7 +242,7 @@ describe 'fetch', ->
 
     fetch 'https://gwent.io/api/obelix/v1/ping'
     .then (res) ->
-      b res.status, 500
+      b res.status, 503
     .then ->
       fetchAllow 'https://gwent.io/api/obelix/v1/ping'
     .then (res) ->

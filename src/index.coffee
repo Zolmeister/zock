@@ -243,8 +243,8 @@ class Zock
         else
           response =
             fn: -> Promise.resolve {
-              statusCode: 500
-              body: ''
+              statusCode: 503
+              body: "Invalid Outbound Request: #{url}"
             }
 
       try
@@ -308,8 +308,8 @@ class Zock
         else
           response =
             fn: -> Promise.resolve {
-              statusCode: 500
-              body: ''
+              statusCode: 503
+              body: "Invalid Outbound Request: #{url}"
             }
 
       mock = new MockClientRequest({method, response, url, cb, headers})
@@ -340,8 +340,8 @@ class Zock
         else
           response =
             fn: -> Promise.resolve {
-              statusCode: 500
-              body: ''
+              statusCode: 503
+              body: "Invalid Outbound Request #{url}"
             }
 
       try

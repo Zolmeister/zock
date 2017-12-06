@@ -293,7 +293,7 @@ describe 'XMLHttpRequest', ->
       .XMLHttpRequest()
 
     onComplete xmlhttp, ->
-      b xmlhttp.status, 500
+      b xmlhttp.status, 503
 
       done()
 
