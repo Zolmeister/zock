@@ -236,17 +236,27 @@ describe 'fetch', ->
     fetch = zock
       .fetch()
 
-    fetchAllow = zock
+    fetch 'https://gwent.io/api/obelix/v1/ping'
+    .then (res) ->
+      b res.status, 503
+
+
+  it 'allows outbound requets', ->
+    fetch = zock
       .allowOutbound()
       .fetch()
 
     fetch 'https://gwent.io/api/obelix/v1/ping'
     .then (res) ->
-      b res.status, 503
-    .then ->
-      fetchAllow 'https://gwent.io/api/obelix/v1/ping'
-    .then (res) ->
       b res.status, 200
+
+  it 'allows localhost requests', ->
+    fetch = zock
+      .fetch()
+
+    fetch 'http://localhost'
+    .then (-> throw new Error 'Expected error'), (err) ->
+      b err instanceof TypeError
 
   it 'supports JSON array responses', ->
     fetch = zock

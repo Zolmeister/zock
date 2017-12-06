@@ -571,6 +571,21 @@ describe 'http', ->
     req.end()
     null
 
+  it 'allows localhost requests', (done) ->
+    request = zock
+      .nodeRequest()
+
+    opts =
+      host: '127.0.0.1'
+      path: '/'
+      port: 50170
+
+    req = request opts, (res) ->
+      b res.statusCode, 200
+      done()
+    req.end()
+    null
+
   it 'supports JSON array response', (done) ->
     request = zock
       .base('http://baseurl.com')

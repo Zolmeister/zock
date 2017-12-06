@@ -41,8 +41,19 @@ else
     @params {String} request.url
     @params {RouterResponse} request.response
     ###
-    constructor: (@request) -> null
+    constructor: (@request) ->
+      @headers = @request.headers or {}
+      @aborted = false
+      @connection = null
+      @socket = null
+    abort: => @aborted = true
     flushHeaders: -> null
+    getHeader: (key) => @headers[key]
+    removeHeader: (key) => delete @headers[key]
+    setHeader: (key, val) => @headers[key] = val
+    setNoDelay: -> null
+    setTimeout: -> null
+    setSocketKeepAlive: -> null
     write: (@body) => null
     end: =>
       try
@@ -75,10 +86,6 @@ else
         @emit 'response', mockIncomingResponse
         mockIncomingResponse.push body
         mockIncomingResponse.push null
-    abort: -> null
-    setTimeout: -> null
-    setNoDelay: -> null
-    setSocketKeepAlive: -> null
 
 resultsToRouters = (results) ->
   routers = _.reduce results, (routers, result) ->
@@ -148,6 +155,10 @@ parseNodeHeaders = (headers) ->
       val.join ','
     else
       val
+
+isLocalhost = (url) ->
+  hostname = URL.parse(url).hostname
+  hostname is 'localhost' or hostname is '127.0.0.1'
 
 class Zock
   constructor: (@state = {allowOutbound: false}) -> null
@@ -238,7 +249,7 @@ class Zock
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
       unless response?
-        if allowOutbound
+        if allowOutbound or isLocalhost url
           return originalFetch.apply null, arguments
         else
           response =
@@ -300,7 +311,7 @@ class Zock
 
       response = routers[method.toLowerCase()]?.match(URL.format(parsed))
       unless response?
-        if allowOutbound
+        if allowOutbound or isLocalhost url
           if isHttps
             return originalHttpsRequest.apply https, arguments
           else
@@ -335,7 +346,7 @@ class Zock
 
     send = (data) ->
       if not response?
-        if allowOutbound
+        if allowOutbound or isLocalhost url
           throw new Error 'Outbound request not implemented for XMLHttpRequest'
         else
           response =
