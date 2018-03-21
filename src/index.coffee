@@ -42,6 +42,7 @@ else
     @params {RouterResponse} request.response
     ###
     constructor: (@request) ->
+      super()
       @headers = @request.headers or {}
       @aborted = false
       @connection = null
