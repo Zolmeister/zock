@@ -87,6 +87,8 @@ else
         @emit 'response', mockIncomingResponse
         mockIncomingResponse.push body
         mockIncomingResponse.push null
+      .catch (err) =>
+        @emit 'error', err
 
 resultsToRouters = (results) ->
   routers = _.reduce results, (routers, result) ->
@@ -188,19 +190,23 @@ class Zock
   exoid: (path) => @request(path, 'exoid')
   withOverrides: (fn) =>
     if window?
+      previousFetch = window.fetch
       window.fetch = @fetch()
+      previousXMLHttpRequest = window.XMLHttpRequest
       window.XMLHttpRequest = => new @XMLHttpRequest()
     else
+      previousHttpRequest = http.request
       http.request = @nodeRequest()
+      previousHttpsRequest = https.request
       https.request = @nodeRequest(true)
 
     restore = ->
       if window?
-        window.XMLHttpRequest = originalXMLHttpRequest
-        window.fetch = originalFetch
+        window.XMLHttpRequest = previousXMLHttpRequest
+        window.fetch = previousFetch
       else
-        http.request = originalHttpRequest
-        https.request = originalHttpsRequest
+        http.request = previousHttpRequest
+        https.request = previousHttpsRequest
 
     new Promise (resolve) ->
       resolve fn()
@@ -254,10 +260,8 @@ class Zock
           return originalFetch.apply null, arguments
         else
           response =
-            fn: -> Promise.resolve {
-              statusCode: 503
-              body: "Invalid Outbound Request: #{url}"
-            }
+            fn: ->
+              Promise.reject new Error "Invalid Outbound Request: #{url}"
 
       try
         bodyParams = JSON.parse opts?.body
@@ -319,12 +323,13 @@ class Zock
             return originalHttpRequest.apply http, arguments
         else
           response =
-            fn: -> Promise.resolve {
-              statusCode: 503
-              body: "Invalid Outbound Request: #{url}"
-            }
+            fn: ->
+              Promise.reject new Error "Invalid Outbound Request: #{url}"
 
       mock = new MockClientRequest({method, response, url, cb, headers})
+
+      process.nextTick ->
+        mock.emit 'socket', {connecting: false}
       if opts.body?
         mock.write opts.body
       return mock
@@ -350,11 +355,7 @@ class Zock
         if allowOutbound or isLocalhost url
           throw new Error 'Outbound request not implemented for XMLHttpRequest'
         else
-          response =
-            fn: -> Promise.resolve {
-              statusCode: 503
-              body: "Invalid Outbound Request #{url}"
-            }
+          throw new Error "Invalid Outbound Request: #{url}"
 
       try
         bodyParams = JSON.parse data

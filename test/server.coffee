@@ -499,6 +499,30 @@ describe 'http', ->
 
           req.end()
 
+  it 'nested withOverrides', ->
+    zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply({hello: 'world'})
+      .withOverrides ->
+        zock.withOverrides -> null
+        .then ->
+          new Promise (resolve, reject) ->
+            opts =
+              host: 'baseurl.com'
+              path: '/test'
+
+            req = http.request opts, (res) ->
+              body = ''
+              res.on 'data', (chunk) ->
+                body += chunk
+              res.on 'end', ->
+                b body, JSON.stringify {hello: 'world'}
+                resolve()
+              res.on 'error', reject
+
+            req.end()
+
   it 'removes override after completion', ->
     original = http.request
     zock
@@ -538,15 +562,10 @@ describe 'http', ->
       host: 'zolmeister.com'
       path: '/'
 
-    req = request opts, (res) ->
-      b res.statusCode, 503
-      body = ''
-      res.on 'data', (chunk) ->
-        body += chunk
-      res.on 'end', ->
-        b body, 'Invalid Outbound Request: http://zolmeister.com/'
-        done()
-      res.on 'error', done
+    req = request opts
+    req.on 'error', (err) ->
+      b err.message, 'Invalid Outbound Request: http://zolmeister.com/'
+      done()
     req.end()
     null
 

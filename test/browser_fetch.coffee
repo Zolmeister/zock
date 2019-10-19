@@ -212,6 +212,20 @@ describe 'fetch', ->
         .then (text) ->
           b text, JSON.stringify({hello: 'world'})
 
+  it 'nested withOverrides', ->
+    zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+      .withOverrides ->
+        zock.withOverrides -> null
+        .then ->
+          window.fetch 'http://baseurl.com/test'
+          .then (res) ->
+            res.text()
+          .then (text) ->
+            b text, JSON.stringify({hello: 'world'})
+
   it 'removes override after completion', ->
     originalFetch = window.fetch
     zock
@@ -236,17 +250,16 @@ describe 'fetch', ->
     fetch = zock
       .fetch()
 
-    fetch 'https://gwent.io/api/obelix/v1/ping'
-    .then (res) ->
-      b res.status, 503
-
+    fetch 'https://zolmeister.com'
+    .catch (err) ->
+      b err.message, 'Invalid Outbound Request: https://zolmeister.com'
 
   it 'allows outbound requets', ->
     fetch = zock
       .allowOutbound()
       .fetch()
 
-    fetch 'https://gwent.io/api/obelix/v1/ping'
+    fetch 'https://zolmeister.com'
     .then (res) ->
       b res.status, 200
 

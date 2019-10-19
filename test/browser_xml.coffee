@@ -264,6 +264,25 @@ describe 'XMLHttpRequest', ->
           xmlhttp.open('get', 'http://baseurl.com/test')
           xmlhttp.send()
 
+  it 'nested withOverrides', ->
+    zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+      .withOverrides ->
+        zock.withOverrides -> null
+        .then ->
+          new Promise (resolve) ->
+            xmlhttp = new window.XMLHttpRequest()
+
+            onComplete xmlhttp, ->
+              res = xmlhttp.responseText
+              b res, JSON.stringify({hello: 'world'})
+              resolve()
+
+            xmlhttp.open('get', 'http://baseurl.com/test')
+            xmlhttp.send()
+
   it 'removes override after completion', ->
     originalXML = window.XMLHttpRequest
     zock
@@ -288,17 +307,15 @@ describe 'XMLHttpRequest', ->
     xmlhttp.send()
 
   # TODO: support allowOutbound()
-  it 'defaults to rejecting outbound requests', (done) ->
+  it 'defaults to rejecting outbound requests', ->
     xmlhttp = zock
       .XMLHttpRequest()
 
-    onComplete xmlhttp, ->
-      b xmlhttp.status, 503
-
-      done()
-
-    xmlhttp.open('get', 'https://gwent.io/api/obelix/v1/ping')
-    xmlhttp.send()
+    xmlhttp.open('get', 'https://zolmeister.com')
+    try
+      xmlhttp.send()
+    catch err
+      b err.message, 'Invalid Outbound Request: https://zolmeister.com'
 
   it 'supports JSON array responses', (done) ->
     xmlhttp = zock
