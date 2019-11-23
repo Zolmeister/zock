@@ -1,6 +1,6 @@
 {
   "name": "zock",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Scaffolding for isomorphic coffeescript libraries",
   "keywords": [
     "isomorphic",
