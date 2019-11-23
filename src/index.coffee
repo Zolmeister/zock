@@ -5,7 +5,6 @@ Router = require 'routes'
 FakeXMLHttpRequest = require 'fake-xml-http-request'
 
 if window?
-  originalXMLHttpRequest = window.XMLHttpRequest
   originalFetch = window.fetch
 else
   # Avoid webpack include
@@ -73,7 +72,7 @@ else
         mockIncomingResponse = new MockIncomingResponse({
           method: @request.method
           statusCode: res.statusCode
-          headers: @request.headers
+          headers: res.headers
         })
         body = if typeof res.body is 'string'
           res.body
@@ -97,16 +96,20 @@ resultsToRouters = (results) ->
 
     routers[result.method] ?= Router()
     routers[result.method].addRoute result.url, (request) ->
+      resultOverride = null
       body = if _.isFunction result.body
-        result.body request
+        result.body request, (override) -> resultOverride = override
       else
         result.body
 
       Promise.resolve body
       .then (body) ->
-        _.defaults {
-          body: if _.isPlainObject(body) then JSON.stringify(body) else body
-        }, result
+        if resultOverride?
+          resultOverride
+        else
+          _.defaults {
+            body: if _.isPlainObject(body) then JSON.stringify(body) else body
+          }, result
     return routers
   , {}
 

@@ -87,6 +87,7 @@ see https://github.com/Zorium/exoid for more information
 ### reply({String} [status]=200, {Object|Function} response)
 
 Define reply for the previously defined mock request
+Second parameter is a function to override entire response object instead of using return value as body
 
 ### logger({Function} logger)
 

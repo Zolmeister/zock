@@ -247,6 +247,31 @@ describe 'XMLHttpRequest', ->
     xmlhttp.open('post', 'http://baseurl.com/test/joe')
     xmlhttp.send(JSON.stringify {x: 'y'})
 
+  it 'supports res override (e.g. for statusCode or headers)', (done) ->
+    xmlhttp = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (req, res) ->
+        res
+          statusCode: 401
+          headers:
+            'User-Agent': 'xxx'
+          body: JSON.stringify req
+      .XMLHttpRequest()
+
+    onComplete xmlhttp, ->
+      res = xmlhttp.responseText
+      b xmlhttp.status, 401
+      b xmlhttp.getResponseHeader('User-Agent'), 'xxx'
+      parsed = JSON.parse(res)
+      b parsed.params.name, 'joe'
+      b parsed.body.x, 'y'
+
+      done()
+
+    xmlhttp.open('post', 'http://baseurl.com/test/joe')
+    xmlhttp.send(JSON.stringify {x: 'y'})
+
   it 'withOverrides', ->
     zock
       .base('http://baseurl.com')

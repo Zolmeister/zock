@@ -200,6 +200,30 @@ describe 'fetch', ->
       b parsed.params.name, 'joe'
       b parsed.body.x, 'y'
 
+  it 'supports res override (e.g. for statusCode or headers)', ->
+    fetch = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (req, res) ->
+        res
+          statusCode: 401
+          headers:
+            'User-Agent': 'xxx'
+          body: JSON.stringify req
+      .fetch()
+
+    fetch 'http://baseurl.com/test/joe',
+      method: 'POST'
+      body: JSON.stringify {x: 'y'}
+    .then (res) ->
+      b res.status, 401
+      b res.headers.get('User-Agent'), 'xxx'
+      res.text()
+    .then (text) ->
+      parsed = JSON.parse(text)
+      b parsed.params.name, 'joe'
+      b parsed.body.x, 'y'
+
   it 'withOverrides', ->
     zock
       .base('http://baseurl.com')
@@ -267,9 +291,14 @@ describe 'fetch', ->
     fetch = zock
       .fetch()
 
-    fetch 'http://localhost'
+    # XXX
+    Promise.race [
+      fetch 'http://localhost'
+      new Promise (_, reject) ->
+        setTimeout -> reject new Error 'Timeout'
+    ]
     .then (-> throw new Error 'Expected error'), (err) ->
-      b err instanceof TypeError
+      b err.message is 'Timeout' or err instanceof TypeError
 
   it 'supports JSON array responses', ->
     fetch = zock

@@ -182,6 +182,41 @@ describe 'http', ->
     req.end()
     null
 
+  it 'supports res override (e.g. for statusCode or headers)', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .post('/test/:name')
+      .reply (req, res) ->
+        res
+          statusCode: 401
+          headers:
+            'User-Agent': 'xxx'
+          body: JSON.stringify req
+      .nodeRequest()
+
+    opts =
+      method: 'post'
+      host: 'baseurl.com'
+      path: '/test/joe'
+      body: JSON.stringify
+        x: 'y'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b res.statusCode, 401
+        b res.headers['User-Agent'], 'xxx'
+        parsed = JSON.parse(body)
+        b parsed.params.name, 'joe'
+        b parsed.body.x, 'y'
+        done()
+      res.on 'error', done
+
+    req.end()
+    null
+
   it 'should post', (done) ->
     request = zock
       .base('http://baseurl.com')
