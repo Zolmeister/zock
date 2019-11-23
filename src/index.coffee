@@ -95,6 +95,8 @@ resultsToRouters = (results) ->
       return routers
 
     routers[result.method] ?= Router()
+    try
+      routers[result.method].removeRoute result.url
     routers[result.method].addRoute result.url, (request) ->
       resultOverride = null
       body = if _.isFunction result.body

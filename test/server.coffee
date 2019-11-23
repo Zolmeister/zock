@@ -28,6 +28,31 @@ describe 'http', ->
     req.end()
     null
 
+  it 'should override get', (done) ->
+    request = zock
+      .base('http://baseurl.com')
+      .get('/test')
+      .reply(200, {hello: 'world'})
+      .get('/test')
+      .reply(200, {hello: 'xxx'})
+      .nodeRequest()
+
+    opts =
+      hostname: 'baseurl.com'
+      path: '/test'
+
+    req = request opts, (res) ->
+      body = ''
+      res.on 'data', (chunk) ->
+        body += chunk
+      res.on 'end', ->
+        b body, JSON.stringify {hello: 'xxx'}
+        done()
+      res.on 'error', done
+
+    req.end()
+    null
+
   it 'should get https', (done) ->
     request = zock
       .base('https://baseurl.com')
