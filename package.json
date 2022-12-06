@@ -20,7 +20,7 @@
   "dependencies": {
     "fake-xml-http-request": "^1.2.0",
     "lodash": "^3.10.0",
-    "qs": "^4.0.0",
+    "qs": "^6.2.4",
     "routes": "^2.0.0",
     "url": "^0.10.3"
   },
